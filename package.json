@@ -1,0 +1,93 @@
+{
+  "name": "@entrolytics/nextjs-sdk",
+  "version": "2.0.0",
+  "description": "Next.js integration for Entrolytics with Web Vitals, Forms, and Deployment tracking",
+  "keywords": [
+    "analytics",
+    "nextjs",
+    "react",
+    "tracking",
+    "privacy",
+    "entrolytics",
+    "web-analytics",
+    "web-vitals",
+    "form-analytics",
+    "deployment-tracking"
+  ],
+  "author": "Entrolytics <hey@ng.entrolytics.click>",
+  "license": "MIT",
+  "homepage": "https://ng.entrolytics.click",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/entrolytics/nextjs-sdk.git",
+    "directory": "entro-nextjs"
+  },
+  "bugs": {
+    "url": "https://github.com/entrolytics/nextjs-sdk/issues"
+  },
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js",
+      "require": "./dist/server/index.cjs"
+    },
+    "./plugin": {
+      "types": "./dist/plugin/index.d.ts",
+      "import": "./dist/plugin/index.js",
+      "require": "./dist/plugin/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=24.x"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "lint": "biome check --write .",
+    "lint:check": "biome check .",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.8",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "next": "^16.0.7",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "next": ">=14.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "web-vitals": {
+      "optional": true
+    }
+  },
+  "optionalDependencies": {
+    "web-vitals": "^5.1.0"
+  }
+}
