@@ -1,6 +1,6 @@
 # @entrolytics/nextjs
 
-Official Next.js integration for Entrolytics analytics. Built for the App Router with full TypeScript support.
+Next.js SDK for [Entrolytics](https://ng.entrolytics.click) - First-party growth analytics for the edge.
 
 ## Features
 
