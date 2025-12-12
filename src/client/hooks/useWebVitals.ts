@@ -87,7 +87,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
 
     initialized.current = true;
 
-    import('web-vitals')
+    import('web-vitals/attribution')
       .then(({ onCLS, onINP, onLCP, onFCP, onTTFB }) => {
         const opts = { reportAllChanges };
 
@@ -98,7 +98,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
           delta: m.delta,
           id: m.id,
           navigationType: m.navigationType as NavigationType,
-          attribution: m.attribution as Record<string, unknown>,
+          attribution: m.attribution as unknown as Record<string, unknown>,
         }), opts);
 
         onINP((m) => trackVital({
@@ -108,7 +108,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
           delta: m.delta,
           id: m.id,
           navigationType: m.navigationType as NavigationType,
-          attribution: m.attribution as Record<string, unknown>,
+          attribution: m.attribution as unknown as Record<string, unknown>,
         }), opts);
 
         onCLS((m) => trackVital({
@@ -118,7 +118,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
           delta: m.delta,
           id: m.id,
           navigationType: m.navigationType as NavigationType,
-          attribution: m.attribution as Record<string, unknown>,
+          attribution: m.attribution as unknown as Record<string, unknown>,
         }), opts);
 
         onFCP((m) => trackVital({
@@ -128,7 +128,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
           delta: m.delta,
           id: m.id,
           navigationType: m.navigationType as NavigationType,
-          attribution: m.attribution as Record<string, unknown>,
+          attribution: m.attribution as unknown as Record<string, unknown>,
         }), opts);
 
         onTTFB((m) => trackVital({
@@ -138,7 +138,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
           delta: m.delta,
           id: m.id,
           navigationType: m.navigationType as NavigationType,
-          attribution: m.attribution as Record<string, unknown>,
+          attribution: m.attribution as unknown as Record<string, unknown>,
         }), opts);
       })
       .catch(() => {

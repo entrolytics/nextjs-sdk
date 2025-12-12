@@ -1,33 +1,86 @@
-# @entrolytics/nextjs
+<div align="center">
+  <img src="https://raw.githubusercontent.com/entrolytics/.github/main/media/entrov2.png" alt="Entrolytics" width="64" height="64">
 
-Next.js SDK for [Entrolytics](https://ng.entrolytics.click) - First-party growth analytics for the edge.
+  [![npm](https://img.shields.io/npm/v/@entrolytics/nextjs-sdk.svg?logo=npm)](https://www.npmjs.com/package/@entrolytics/nextjs-sdk)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![Next.js](https://img.shields.io/badge/Next.js-14+-000000.svg?logo=next.js)](https://nextjs.org/)
 
-## Features
+</div>
 
-- **App Router Native** - Built specifically for Next.js 13+ App Router
-- **SSR Safe** - No hydration mismatches, proper server/client separation
-- **Auto Page Tracking** - Automatic page view tracking with route detection
-- **Event Tracking** - Track custom events with typed data
-- **User Identification** - Identify users across sessions
-- **Revenue Tracking** - Track purchases and conversions
-- **Outbound Links** - Automatic external link tracking
-- **A/B Testing** - Tag-based segmentation for experiments
-- **Ad-Blocker Bypass** - Proxy mode for reliable tracking
-- **Server-Side Tracking** - Track from API routes and Server Actions
+---
+
+## Overview
+
+**@entrolytics/nextjs-sdk** is the official Next.js SDK for Entrolytics - first-party growth analytics for the edge. Built specifically for Next.js 13+ App Router with SSR safety and zero-config setup.
+
+**Why use this SDK?**
+- App Router native with proper server/client separation
+- Zero hydration mismatches - SSR safe from the ground up
+- Server-side tracking from API routes and Server Actions
+- Proxy mode for ad-blocker bypass
+
+## Key Features
+
+<table>
+<tr>
+<td width="50%">
+
+### Analytics
+- Automatic page view tracking
+- Custom event and revenue tracking
+- User identification
+- A/B testing with tag segmentation
+
+</td>
+<td width="50%">
+
+### Developer Experience
+- `<Analytics />` zero-config component
+- `useEntrolytics` hook for all functionality
+- Server Actions and API route support
+- Next.js config plugin for proxy mode
+
+</td>
+</tr>
+</table>
+
+## Quick Start
+
+<table>
+<tr>
+<td align="center" width="25%">
+<img src="https://api.iconify.design/lucide:download.svg?color=%236366f1" width="48"><br>
+<strong>1. Install</strong><br>
+<code>npm i @entrolytics/nextjs-sdk</code>
+</td>
+<td align="center" width="25%">
+<img src="https://api.iconify.design/lucide:code.svg?color=%236366f1" width="48"><br>
+<strong>2. Add Component</strong><br>
+<code>&lt;Analytics /&gt;</code> in layout
+</td>
+<td align="center" width="25%">
+<img src="https://api.iconify.design/lucide:settings.svg?color=%236366f1" width="48"><br>
+<strong>3. Configure</strong><br>
+Set Website ID in <code>.env.local</code>
+</td>
+<td align="center" width="25%">
+<img src="https://api.iconify.design/lucide:bar-chart-3.svg?color=%236366f1" width="48"><br>
+<strong>4. Track</strong><br>
+View analytics in dashboard
+</td>
+</tr>
+</table>
 
 ## Installation
 
 ```bash
-pnpm add @entrolytics/nextjs
+pnpm add @entrolytics/nextjs-sdk
 ```
-
-## Quick Start
-
-### 1. Add Analytics Component
 
 ```tsx
 // app/layout.tsx
-import { Analytics } from '@entrolytics/nextjs';
+import { Analytics } from '@entrolytics/nextjs-sdk';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
