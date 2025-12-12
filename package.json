@@ -1,6 +1,6 @@
 {
   "name": "@entrolytics/nextjs-sdk",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Next.js SDK for Entrolytics - First-party growth analytics for the edge",
   "keywords": [
     "analytics",
@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
-    "@types/node": "^25.0.0",
+    "@types/node": "^25.0.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "next": "^16.0.10",
