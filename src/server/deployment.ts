@@ -16,7 +16,14 @@ export interface DeploymentInfo {
   /** Deployment URL */
   deployUrl?: string;
   /** Platform name */
-  platform?: 'vercel' | 'netlify' | 'cloudflare' | 'railway' | 'render' | 'github-actions' | 'unknown';
+  platform?:
+    | 'vercel'
+    | 'netlify'
+    | 'cloudflare'
+    | 'railway'
+    | 'render'
+    | 'github-actions'
+    | 'unknown';
 }
 
 /**

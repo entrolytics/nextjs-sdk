@@ -129,7 +129,7 @@ export async function trackServerVitalsBatch(
 
   const payload = {
     website: websiteId,
-    vitals: vitals.map((v) => ({
+    vitals: vitals.map(v => ({
       ...v,
       deployId: deployment.deployId,
     })),

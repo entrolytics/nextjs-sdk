@@ -1,4 +1,16 @@
 // Client-side exports (default)
+
+// Re-export Phase 2 types from client
+export type {
+  FormEventData,
+  FormEventType,
+  NavigationType,
+  UseFormTrackingOptions,
+  UseWebVitalsOptions,
+  WebVitalData,
+  WebVitalMetric,
+  WebVitalRating,
+} from './client';
 export {
   Analytics,
   EntrolyticsContext,
@@ -8,12 +20,14 @@ export {
   TrackEvent,
   useEntrolytics,
   useEventTracker,
+  useFormTracking,
   usePageView,
   // Phase 2
   useWebVitals,
-  useFormTracking,
 } from './client';
 
+// Re-export Analytics props type
+export type { AnalyticsProps } from './client/components/Analytics';
 // Type exports
 export type {
   BeforeSendCallback,
@@ -31,18 +45,3 @@ export type {
   TrackOptions,
   UsePageViewOptions,
 } from './types';
-
-// Re-export Analytics props type
-export type { AnalyticsProps } from './client/components/Analytics';
-
-// Re-export Phase 2 types from client
-export type {
-  WebVitalMetric,
-  WebVitalRating,
-  NavigationType,
-  WebVitalData,
-  UseWebVitalsOptions,
-  FormEventType,
-  FormEventData,
-  UseFormTrackingOptions,
-} from './client';

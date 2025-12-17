@@ -166,9 +166,7 @@ export function withFormTracking(
   config: TrackFormConfig,
   formInfo: { formId: string; formName?: string; urlPath: string },
 ) {
-  return async <T extends { success?: boolean }>(
-    action: () => Promise<T>,
-  ): Promise<T> => {
+  return async <T extends { success?: boolean }>(action: () => Promise<T>): Promise<T> => {
     const startTime = Date.now();
 
     try {

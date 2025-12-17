@@ -70,7 +70,13 @@ interface FormState {
  * ```
  */
 export function useFormTracking(options: UseFormTrackingOptions) {
-  const { formId, formName, autoTrack = true, trackTiming = true, trackAbandonment = true } = options;
+  const {
+    formId,
+    formName,
+    autoTrack = true,
+    trackTiming = true,
+    trackAbandonment = true,
+  } = options;
   const { config } = useEntrolytics();
   const formRef = useRef<HTMLFormElement | null>(null);
   const stateRef = useRef<FormState>({
@@ -81,7 +87,10 @@ export function useFormTracking(options: UseFormTrackingOptions) {
   });
 
   const trackEvent = useCallback(
-    async (data: Omit<FormEventData, 'formId' | 'formName' | 'urlPath'> & Partial<Pick<FormEventData, 'formId' | 'formName' | 'urlPath'>>) => {
+    async (
+      data: Omit<FormEventData, 'formId' | 'formName' | 'urlPath'> &
+        Partial<Pick<FormEventData, 'formId' | 'formName' | 'urlPath'>>,
+    ) => {
       if (typeof window === 'undefined') return;
 
       const host = config.host || 'https://ng.entrolytics.click';
