@@ -24,7 +24,7 @@ interface ProxyHandlers {
  *
  * export const { GET, POST } = createProxyHandler({
  *   host: process.env.ENTROLYTICS_HOST!,
- *   websiteId: process.env.ENTROLYTICS_NG_WEBSITE_ID,
+ *   websiteId: process.env.ENTROLYTICS_WEBSITE_ID,
  *   mode: 'cloak',
  * });
  * ```

@@ -53,7 +53,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
     async (data: WebVitalData) => {
       if (typeof window === 'undefined') return;
 
-      const host = config.host || 'https://ng.entrolytics.click';
+      const host = config.host || 'https://entrolytics.click';
       const payload = {
         website: config.websiteId,
         metric: data.metric,

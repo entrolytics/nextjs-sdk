@@ -1,6 +1,6 @@
 {
   "name": "@entrolytics/nextjs-sdk",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "description": "Next.js SDK for Entrolytics - First-party growth analytics for the edge",
   "keywords": [
     "analytics",
@@ -14,9 +14,9 @@
     "form-analytics",
     "deployment-tracking"
   ],
-  "author": "Entrolytics <hey@ng.entrolytics.click>",
+  "author": "Entrolytics <hey@entrolytics.click>",
   "license": "MIT",
-  "homepage": "https://ng.entrolytics.click",
+  "homepage": "https://entrolytics.click",
   "repository": {
     "type": "git",
     "url": "https://github.com/entrolytics/nextjs-sdk.git",
@@ -53,7 +53,7 @@
   ],
   "sideEffects": false,
   "engines": {
-    "node": ">=24.x"
+    "node": ">=22.x"
   },
   "publishConfig": {
     "access": "public"
@@ -67,11 +67,11 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.10",
+    "@biomejs/biome": "2.3.11",
     "@types/node": "^25.0.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "next": "^16.1.0",
+    "next": "^16.1.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "tsup": "^8.5.1",
@@ -89,5 +89,8 @@
   },
   "optionalDependencies": {
     "web-vitals": "^5.1.0"
+  },
+  "dependencies": {
+    "@entrolytics/shared": "^2.0.6"
   }
 }

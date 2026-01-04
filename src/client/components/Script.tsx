@@ -33,7 +33,7 @@ interface ScriptProps
  *     <html>
  *       <head>
  *         <Script
- *           websiteId={process.env.NEXT_PUBLIC_ENTROLYTICS_NG_WEBSITE_ID!}
+ *           websiteId={process.env.NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID!}
  *           host={process.env.NEXT_PUBLIC_ENTROLYTICS_HOST}
  *         />
  *       </head>

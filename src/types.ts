@@ -1,13 +1,30 @@
 /**
- * Event data can work with any JSON data. There are a few rules in place to maintain performance.
- * - Numbers have a max precision of 4.
- * - Strings have a max length of 500.
- * - Arrays are converted to a String, with the same max length of 500.
- * - Objects have a max of 50 properties. Arrays are considered 1 property.
+ * Base event payload type - mirrors @entrolytics/shared EventPayload
+ * TODO: Import from @entrolytics/shared once published with EventPayload export
  */
-export interface EventData {
-  [key: string]: string | number | boolean | EventData | string[] | number[] | EventData[];
+interface BaseEventPayload {
+  websiteId: string;
+  sessionId: string;
+  visitorId: string;
+  url: string;
+  referrer?: string;
+  eventType: string;
+  eventName?: string;
+  properties?: Record<string, unknown>;
+  screenWidth?: number;
+  screenHeight?: number;
+  loadTime?: number;
+  domInteractive?: number;
+  domComplete?: number;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
 }
+
+// Extract the properties type from EventPayload for easier usage
+export type EventData = NonNullable<BaseEventPayload['properties']>;
 
 export interface TrackedProperties {
   /** Hostname of server */
@@ -34,12 +51,7 @@ export interface TrackedProperties {
   id?: string;
 }
 
-export interface EventPayload extends TrackedProperties {
-  /** Event name (max 50 characters) */
-  name?: string;
-  /** Event data */
-  data?: EventData;
-}
+export type EventPayload = BaseEventPayload & TrackedProperties;
 
 export interface IdentifyPayload extends TrackedProperties {
   /** Session/user data */

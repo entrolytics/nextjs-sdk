@@ -58,7 +58,7 @@ export interface TrackFormConfig {
  *   await trackServerFormEvent(
  *     {
  *       host: process.env.ENTROLYTICS_HOST!,
- *       websiteId: process.env.ENTROLYTICS_NG_WEBSITE_ID!,
+ *       websiteId: process.env.ENTROLYTICS_WEBSITE_ID!,
  *     },
  *     {
  *       eventType: 'submit',

@@ -60,7 +60,7 @@ export interface TrackVitalsConfig {
  *   await trackServerVital(
  *     {
  *       host: process.env.ENTROLYTICS_HOST!,
- *       websiteId: process.env.ENTROLYTICS_NG_WEBSITE_ID!,
+ *       websiteId: process.env.ENTROLYTICS_WEBSITE_ID!,
  *     },
  *     vital
  *   );
@@ -167,7 +167,7 @@ export async function trackServerVitalsBatch(
  * export function reportWebVitals(metric) {
  *   const reporter = createWebVitalsReporter({
  *     host: process.env.NEXT_PUBLIC_ENTROLYTICS_HOST!,
- *     websiteId: process.env.NEXT_PUBLIC_ENTROLYTICS_NG_WEBSITE_ID!,
+ *     websiteId: process.env.NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID!,
  *   });
  *   reporter(metric);
  * }

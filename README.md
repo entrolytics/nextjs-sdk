@@ -97,8 +97,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 That's it! The `<Analytics />` component automatically reads from your `.env.local`:
 
 ```bash
-NEXT_PUBLIC_ENTROLYTICS_NG_WEBSITE_ID=your-website-id
-NEXT_PUBLIC_ENTROLYTICS_HOST=https://ng.entrolytics.click
+NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID=your-website-id
+NEXT_PUBLIC_ENTROLYTICS_HOST=https://entrolytics.click
 ```
 
 ### 2. Track Events
@@ -293,7 +293,7 @@ export async function POST(request: Request) {
   await trackServerEvent(
     {
       host: process.env.ENTROLYTICS_HOST!,
-      websiteId: process.env.ENTROLYTICS_NG_WEBSITE_ID!,
+      websiteId: process.env.ENTROLYTICS_WEBSITE_ID!,
     },
     {
       event: 'api-call',
@@ -314,7 +314,7 @@ import { createProxyHandler } from '@entrolytics/nextjs/server';
 
 export const { GET, POST } = createProxyHandler({
   host: process.env.ENTROLYTICS_HOST!,
-  websiteId: process.env.ENTROLYTICS_NG_WEBSITE_ID,
+  websiteId: process.env.ENTROLYTICS_WEBSITE_ID,
   mode: 'cloak',
 });
 ```
@@ -327,7 +327,7 @@ import { withEntrolyticsMiddleware } from '@entrolytics/nextjs/server';
 
 const entrolytics = withEntrolyticsMiddleware({
   host: process.env.ENTROLYTICS_HOST!,
-  websiteId: process.env.ENTROLYTICS_NG_WEBSITE_ID!,
+  websiteId: process.env.ENTROLYTICS_WEBSITE_ID!,
   trackRoutes: ['/api/*'],
 });
 
@@ -343,7 +343,7 @@ export async function middleware(request: NextRequest) {
 import { withEntrolytics } from '@entrolytics/nextjs/plugin';
 
 export default withEntrolytics({
-  websiteId: process.env.NEXT_PUBLIC_ENTROLYTICS_NG_WEBSITE_ID!,
+  websiteId: process.env.NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID!,
   host: process.env.NEXT_PUBLIC_ENTROLYTICS_HOST,
   proxy: {
     enabled: true,
@@ -356,4 +356,4 @@ export default withEntrolytics({
 
 ## License
 
-MIT © [Entrolytics](https://ng.entrolytics.click)
+MIT © [Entrolytics](https://entrolytics.click)

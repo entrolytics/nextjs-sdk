@@ -34,7 +34,7 @@ interface EntrolyticsPluginConfig {
  * import { withEntrolytics } from '@entrolytics/nextjs/plugin';
  *
  * export default withEntrolytics({
- *   websiteId: process.env.NEXT_PUBLIC_ENTROLYTICS_NG_WEBSITE_ID!,
+ *   websiteId: process.env.NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID!,
  *   host: process.env.NEXT_PUBLIC_ENTROLYTICS_HOST,
  *   proxy: {
  *     enabled: true,
@@ -53,7 +53,7 @@ export function withEntrolytics(pluginConfig: EntrolyticsPluginConfig) {
     // Merge environment variables
     const env = {
       ...nextConfig.env,
-      NEXT_PUBLIC_ENTROLYTICS_NG_WEBSITE_ID: websiteId,
+      NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID: websiteId,
       ...(host && { NEXT_PUBLIC_ENTROLYTICS_HOST: host }),
       ...(debug && { NEXT_PUBLIC_ENTROLYTICS_DEBUG: 'true' }),
     };

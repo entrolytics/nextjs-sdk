@@ -6,7 +6,7 @@ import { EntrolyticsProvider } from '../provider';
 
 export interface AnalyticsProps extends Partial<EntrolyticsConfig> {
   /**
-   * Website ID - defaults to NEXT_PUBLIC_ENTROLYTICS_NG_WEBSITE_ID
+   * Website ID - defaults to NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID
    */
   websiteId?: string;
   /**
@@ -40,18 +40,18 @@ export interface AnalyticsProps extends Partial<EntrolyticsConfig> {
  * ```
  *
  * Environment variables (in .env.local):
- * - NEXT_PUBLIC_ENTROLYTICS_NG_WEBSITE_ID (required)
+ * - NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID (required)
  * - NEXT_PUBLIC_ENTROLYTICS_HOST (optional)
  */
 export function Analytics({ websiteId, host, children, ...config }: AnalyticsProps) {
-  const finalWebsiteId = websiteId || process.env.NEXT_PUBLIC_ENTROLYTICS_NG_WEBSITE_ID;
+  const finalWebsiteId = websiteId || process.env.NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID;
   const finalHost = host || process.env.NEXT_PUBLIC_ENTROLYTICS_HOST;
 
   // Show helpful warnings in development
   if (process.env.NODE_ENV === 'development') {
     if (!finalWebsiteId) {
       console.warn(
-        '[Entrolytics] Missing NEXT_PUBLIC_ENTROLYTICS_NG_WEBSITE_ID environment variable. Add it to .env.local or pass as prop.',
+        '[Entrolytics] Missing NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID environment variable. Add it to .env.local or pass as prop.',
       );
       return null;
     }
