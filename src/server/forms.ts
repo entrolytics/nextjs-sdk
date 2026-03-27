@@ -1,15 +1,13 @@
+import { API_ROUTES } from '@entrolytics/shared';
+import type { FormEventType } from '@entrolytics/shared';
 /**
  * Server-side Form tracking for Next.js
  * Track form submissions from Server Actions and API routes
  */
 
-export type FormEventType =
-  | 'start'
-  | 'field_focus'
-  | 'field_blur'
-  | 'field_error'
-  | 'submit'
-  | 'abandon';
+import { resolveSessionVisitorIds } from './identity';
+
+export type { FormEventType };
 
 export interface FormEventPayload {
   /** Form event type */
@@ -39,8 +37,14 @@ export interface FormEventPayload {
 export interface TrackFormConfig {
   /** Entrolytics host URL */
   host: string;
+  /** Public collection API key */
+  apiKey: string;
   /** Website ID */
   websiteId: string;
+  /** Optional stable session ID */
+  sessionId?: string;
+  /** Optional stable visitor ID */
+  visitorId?: string;
 }
 
 /**
@@ -77,18 +81,24 @@ export async function trackServerFormEvent(
   config: TrackFormConfig,
   event: FormEventPayload,
 ): Promise<{ ok: boolean; error?: string }> {
-  const { host, websiteId } = config;
+  const { host, websiteId, apiKey } = config;
   const baseUrl = host.replace(/\/$/, '');
+  const { sessionId, visitorId } = resolveSessionVisitorIds(config);
 
   const payload = {
-    website: websiteId,
+    websiteId,
+    sessionId,
+    visitorId,
     ...event,
   };
 
   try {
-    const response = await fetch(`${baseUrl}/api/collect/forms`, {
+    const response = await fetch(`${baseUrl}${API_ROUTES.collectForms}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
       body: JSON.stringify(payload),
     });
 
@@ -112,18 +122,24 @@ export async function trackServerFormEventsBatch(
   config: TrackFormConfig,
   events: FormEventPayload[],
 ): Promise<{ ok: boolean; error?: string }> {
-  const { host, websiteId } = config;
+  const { host, websiteId, apiKey } = config;
   const baseUrl = host.replace(/\/$/, '');
+  const { sessionId, visitorId } = resolveSessionVisitorIds(config);
 
   const payload = {
-    website: websiteId,
+    websiteId,
+    sessionId,
+    visitorId,
     events,
   };
 
   try {
-    const response = await fetch(`${baseUrl}/api/collect/forms`, {
+    const response = await fetch(`${baseUrl}${API_ROUTES.collectFormsBatch}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
       body: JSON.stringify(payload),
     });
 

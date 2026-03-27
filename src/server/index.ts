@@ -4,16 +4,8 @@
 export type { DeploymentInfo } from './deployment';
 export { detectDeployment, getDeploymentLabel } from './deployment';
 // Phase 2: Form tracking
-export type {
-  FormEventPayload,
-  FormEventType,
-  TrackFormConfig,
-} from './forms';
-export {
-  trackServerFormEvent,
-  trackServerFormEventsBatch,
-  withFormTracking,
-} from './forms';
+export type { FormEventPayload, FormEventType, TrackFormConfig } from './forms';
+export { trackServerFormEvent, trackServerFormEventsBatch, withFormTracking } from './forms';
 export { composeMiddleware, withEntrolyticsMiddleware } from './middleware';
 export { createProxyHandler, createScriptProxy } from './proxy';
 export { identifyServerSession, trackServerEvent } from './track';
@@ -25,8 +17,4 @@ export type {
   WebVitalPayload,
   WebVitalRating,
 } from './vitals';
-export {
-  createWebVitalsReporter,
-  trackServerVital,
-  trackServerVitalsBatch,
-} from './vitals';
+export { createWebVitalsReporter, trackServerVital, trackServerVitalsBatch } from './vitals';

@@ -1,31 +1,37 @@
 {
   "name": "@entrolytics/nextjs-sdk",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Next.js SDK for Entrolytics - First-party growth analytics for the edge",
   "keywords": [
     "analytics",
+    "deployment-tracking",
+    "entrolytics",
+    "form-analytics",
     "nextjs",
+    "privacy",
     "react",
     "tracking",
-    "privacy",
-    "entrolytics",
     "web-analytics",
-    "web-vitals",
-    "form-analytics",
-    "deployment-tracking"
+    "web-vitals"
   ],
-  "author": "Entrolytics <hey@entrolytics.click>",
-  "license": "MIT",
   "homepage": "https://entrolytics.click",
+  "bugs": {
+    "url": "https://github.com/entrolytics/nextjs-sdk/issues"
+  },
+  "license": "MIT",
+  "author": "Entrolytics <hey@entrolytics.click>",
   "repository": {
     "type": "git",
     "url": "https://github.com/entrolytics/nextjs-sdk.git",
     "directory": "entro-nextjs"
   },
-  "bugs": {
-    "url": "https://github.com/entrolytics/nextjs-sdk/issues"
-  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
+  "sideEffects": false,
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -46,39 +52,41 @@
       "require": "./dist/plugin/index.cjs"
     }
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
-  "sideEffects": false,
-  "engines": {
-    "node": ">=22.x"
-  },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup",
-    "lint": "biome check --write .",
-    "lint:check": "biome check .",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "lint": "oxlint --fix . && oxfmt --write .",
+    "lint:check": "oxlint . && oxfmt --check .",
+    "lint:fix-unsafe": "oxlint -f stylish --import-plugin --type-aware --type-check --vitest-plugin --fix --fix-suggestions --fix-dangerously src/",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "@entrolytics/shared": "^2.4.0",
+    "@entrolytics/trpc-client": "^2.2.2",
+    "@tanstack/react-query": "^5.95.2",
+    "@trpc/client": "^11.15.1",
+    "@trpc/next": "^11.15.1",
+    "@trpc/react-query": "^11.15.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.11",
-    "@types/node": "^25.0.3",
-    "@types/react": "^19.2.7",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "next": "^16.1.1",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "next": "^16.2.1",
+    "oxfmt": "^0.42.0",
+    "oxlint": "^1.57.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tsdown": "^0.21.6",
+    "typescript": "^6.0.2"
   },
   "peerDependencies": {
-    "next": ">=14.0.0",
+    "next": ">=15.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
@@ -88,9 +96,10 @@
     }
   },
   "optionalDependencies": {
-    "web-vitals": "^5.1.0"
+    "web-vitals": "^5.2.0"
   },
-  "dependencies": {
-    "@entrolytics/shared": "^2.0.6"
-  }
+  "engines": {
+    "node": ">=24.x"
+  },
+  "packageManager": "pnpm@10.33.0"
 }

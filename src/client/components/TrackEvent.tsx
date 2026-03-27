@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import {
   cloneElement,
   isValidElement,
@@ -61,7 +62,7 @@ export function TrackEvent({
     (e: React.KeyboardEvent) => {
       if (trigger === 'click' && (e.key === 'Enter' || e.key === ' ')) {
         e.preventDefault();
-        handleTrack();
+        void handleTrack();
       }
     },
     [trigger, handleTrack],
@@ -78,7 +79,7 @@ export function TrackEvent({
       entries => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            handleTrack();
+            void handleTrack();
             if (once) {
               observer.disconnect();
             }
@@ -127,17 +128,24 @@ export function TrackEvent({
     return cloneElement(child, props);
   }
 
-  // Wrap non-element children in an accessible span
+  if (trigger === 'click') {
+    return (
+      <button
+        ref={elementRef as React.RefObject<HTMLButtonElement>}
+        type="button"
+        className={className}
+        onClick={() => {
+          void handleTrack();
+        }}
+        onKeyDown={handleKeyDown}
+      >
+        {children}
+      </button>
+    );
+  }
+
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: role is set conditionally based on trigger
-    <span
-      ref={elementRef as React.RefObject<HTMLSpanElement>}
-      className={className}
-      role={trigger === 'click' ? 'button' : undefined}
-      tabIndex={trigger === 'click' ? 0 : undefined}
-      onClick={trigger === 'click' ? handleTrack : undefined}
-      onKeyDown={trigger === 'click' ? handleKeyDown : undefined}
-    >
+    <span ref={elementRef as React.RefObject<HTMLSpanElement>} className={className}>
       {children}
     </span>
   );

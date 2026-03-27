@@ -3,6 +3,8 @@ import type { NextConfig } from 'next';
 interface EntrolyticsPluginConfig {
   /** Your Entrolytics website ID (required) */
   websiteId: string;
+  /** Public collection API key (required for /collect endpoints) */
+  apiKey?: string;
   /** Custom analytics host URL */
   host?: string;
   /** Proxy configuration for ad-blocker bypass */
@@ -47,13 +49,14 @@ interface EntrolyticsPluginConfig {
  * ```
  */
 export function withEntrolytics(pluginConfig: EntrolyticsPluginConfig) {
-  const { websiteId, host, proxy, debug } = pluginConfig;
+  const { websiteId, apiKey, host, proxy, debug } = pluginConfig;
 
   return (nextConfig: NextConfig = {}): NextConfig => {
     // Merge environment variables
     const env = {
       ...nextConfig.env,
       NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID: websiteId,
+      ...(apiKey && { NEXT_PUBLIC_ENTROLYTICS_API_KEY: apiKey }),
       ...(host && { NEXT_PUBLIC_ENTROLYTICS_HOST: host }),
       ...(debug && { NEXT_PUBLIC_ENTROLYTICS_DEBUG: 'true' }),
     };
@@ -85,7 +88,7 @@ export function withEntrolytics(pluginConfig: EntrolyticsPluginConfig) {
           // Collection endpoint proxy (if not using route handler)
           {
             source: `${collectPath}/:path*`,
-            destination: `${baseUrl}/api/send`,
+            destination: `${baseUrl}/collect/:path*`,
           },
         ];
       }
@@ -155,7 +158,7 @@ export function getProxyRoutes(config: {
     },
     collect: {
       source: `${collectPath}/:path*`,
-      destination: `${baseUrl}/api/send`,
+      destination: `${baseUrl}/collect/:path*`,
     },
   };
 }

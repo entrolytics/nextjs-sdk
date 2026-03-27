@@ -1,30 +1,7 @@
-/**
- * Base event payload type - mirrors @entrolytics/shared EventPayload
- * TODO: Import from @entrolytics/shared once published with EventPayload export
- */
-interface BaseEventPayload {
-  websiteId: string;
-  sessionId: string;
-  visitorId: string;
-  url: string;
-  referrer?: string;
-  eventType: string;
-  eventName?: string;
-  properties?: Record<string, unknown>;
-  screenWidth?: number;
-  screenHeight?: number;
-  loadTime?: number;
-  domInteractive?: number;
-  domComplete?: number;
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  utmTerm?: string;
-  utmContent?: string;
-}
+import type { EventPayload as SharedEventPayload } from '@entrolytics/shared';
 
 // Extract the properties type from EventPayload for easier usage
-export type EventData = NonNullable<BaseEventPayload['properties']>;
+export type EventData = NonNullable<SharedEventPayload['properties']>;
 
 export interface TrackedProperties {
   /** Hostname of server */
@@ -51,7 +28,13 @@ export interface TrackedProperties {
   id?: string;
 }
 
-export type EventPayload = BaseEventPayload & TrackedProperties;
+export type EventPayload = SharedEventPayload &
+  TrackedProperties & {
+    /** Event name for custom events */
+    name?: string;
+    /** Event data payload */
+    data?: EventData;
+  };
 
 export interface IdentifyPayload extends TrackedProperties {
   /** Session/user data */
@@ -75,6 +58,8 @@ export type BeforeSendCallback = (
 export interface EntrolyticsConfig {
   /** Your Entrolytics website ID (required - use one of: websiteId, linkId, or pixelId) */
   websiteId?: string;
+  /** Public collection API key (required for /collect endpoints) */
+  apiKey?: string;
   /** Your Entrolytics link ID for link tracking */
   linkId?: string;
   /** Your Entrolytics pixel ID for conversion tracking */
@@ -176,8 +161,10 @@ export interface TrackEventProps {
   className?: string;
 }
 
-export interface OutboundLinkProps
-  extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
+export interface OutboundLinkProps extends Omit<
+  React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  'href'
+> {
   /** External URL */
   href: string;
   /** Additional event data */

@@ -1,13 +1,13 @@
 'use client';
 
+import React from 'react';
 import NextScript from 'next/script';
 import type { EntrolyticsConfig } from '../../types';
 
-interface ScriptProps
-  extends Pick<
-    EntrolyticsConfig,
-    'websiteId' | 'linkId' | 'pixelId' | 'host' | 'proxy' | 'scriptName'
-  > {
+interface ScriptProps extends Pick<
+  EntrolyticsConfig,
+  'websiteId' | 'linkId' | 'pixelId' | 'host' | 'proxy' | 'scriptName'
+> {
   /** Additional data attributes */
   autoTrack?: boolean;
   domains?: string[];

@@ -1,22 +1,18 @@
+import { API_ROUTES } from '@entrolytics/shared';
+import type { NavigationType, VitalRating, VitalType } from '@entrolytics/shared';
 /**
  * Server-side Web Vitals tracking for Next.js
  * Receives vitals from client and forwards to Entrolytics
  */
 
 import { detectDeployment } from './deployment';
+import { resolveSessionVisitorIds } from './identity';
 
 // Declare process for environments where it exists
-declare const process: { env: Record<string, string | undefined> } | undefined;
 
-export type WebVitalMetric = 'LCP' | 'INP' | 'CLS' | 'TTFB' | 'FCP';
-export type WebVitalRating = 'good' | 'needs-improvement' | 'poor';
-export type NavigationType =
-  | 'navigate'
-  | 'reload'
-  | 'back-forward'
-  | 'back-forward-cache'
-  | 'prerender'
-  | 'restore';
+export type WebVitalMetric = VitalType;
+export type WebVitalRating = VitalRating;
+export type { NavigationType };
 
 export interface WebVitalPayload {
   /** Metric name (LCP, INP, CLS, TTFB, FCP) */
@@ -42,8 +38,14 @@ export interface WebVitalPayload {
 export interface TrackVitalsConfig {
   /** Entrolytics host URL */
   host: string;
+  /** Public collection API key */
+  apiKey: string;
   /** Website ID */
   websiteId: string;
+  /** Optional stable session ID */
+  sessionId?: string;
+  /** Optional stable visitor ID */
+  visitorId?: string;
 }
 
 /**
@@ -73,14 +75,19 @@ export async function trackServerVital(
   config: TrackVitalsConfig,
   vital: WebVitalPayload,
 ): Promise<{ ok: boolean; error?: string }> {
-  const { host, websiteId } = config;
+  const { host, websiteId, apiKey } = config;
   const baseUrl = host.replace(/\/$/, '');
+  const { sessionId, visitorId } = resolveSessionVisitorIds(config);
 
   // Auto-detect deployment info
   const deployment = detectDeployment();
 
   const payload = {
-    website: websiteId,
+    websiteId,
+    sessionId,
+    visitorId,
+    metricName: vital.metric,
+    metricValue: vital.value,
     metric: vital.metric,
     value: vital.value,
     rating: vital.rating,
@@ -95,9 +102,12 @@ export async function trackServerVital(
   };
 
   try {
-    const response = await fetch(`${baseUrl}/api/collect/vitals`, {
+    const response = await fetch(`${baseUrl}${API_ROUTES.collectVitals}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
       body: JSON.stringify(payload),
     });
 
@@ -121,24 +131,32 @@ export async function trackServerVitalsBatch(
   config: TrackVitalsConfig,
   vitals: WebVitalPayload[],
 ): Promise<{ ok: boolean; error?: string }> {
-  const { host, websiteId } = config;
+  const { host, websiteId, apiKey } = config;
   const baseUrl = host.replace(/\/$/, '');
+  const { sessionId, visitorId } = resolveSessionVisitorIds(config);
 
   // Auto-detect deployment info
   const deployment = detectDeployment();
 
   const payload = {
-    website: websiteId,
+    websiteId,
+    sessionId,
+    visitorId,
     vitals: vitals.map(v => ({
       ...v,
+      metricName: v.metric,
+      metricValue: v.value,
       deployId: deployment.deployId,
     })),
   };
 
   try {
-    const response = await fetch(`${baseUrl}/api/collect/vitals`, {
+    const response = await fetch(`${baseUrl}${API_ROUTES.collectVitalsBatch}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
       body: JSON.stringify(payload),
     });
 

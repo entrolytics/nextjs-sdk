@@ -1,6 +1,6 @@
 'use client';
 
-import { type Ref, useCallback } from 'react';
+import React, { type Ref, useCallback } from 'react';
 import type { OutboundLinkProps } from '../../types';
 import { useEntrolytics } from '../hooks/useEntrolytics';
 
@@ -51,7 +51,7 @@ export function OutboundLink({
           }
         } else {
           // For external/new tab, track without blocking
-          trackOutboundLink(href, data);
+          void trackOutboundLink(href, data);
         }
       }
 

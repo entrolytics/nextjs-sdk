@@ -1,15 +1,22 @@
 import type { NextRequest } from 'next/server';
 import type { EventData } from '../types';
+import { resolveSessionVisitorIds } from './identity';
 
 interface ServerTrackConfig {
   /** Entrolytics host URL */
   host: string;
+  /** Public collection API key */
+  apiKey: string;
   /** Website ID (use one of: websiteId, linkId, or pixelId) */
   websiteId?: string;
-  /** Link ID for link tracking */
+  /** @deprecated Not supported by collect contract */
   linkId?: string;
-  /** Pixel ID for conversion tracking */
+  /** @deprecated Not supported by collect contract */
   pixelId?: string;
+  /** Optional stable session ID */
+  sessionId?: string;
+  /** Optional stable visitor ID */
+  visitorId?: string;
 }
 
 interface ServerTrackOptions {
@@ -29,6 +36,83 @@ interface ServerTrackOptions {
   tag?: string;
   /** Extract info from request */
   request?: NextRequest | Request;
+}
+
+interface RequestMetadata {
+  hostname: string;
+  ip: string;
+  language: string;
+  referrer: string;
+  requestUrl: string;
+  userAgent: string;
+}
+
+function extractRequestMetadata(request?: NextRequest | Request): RequestMetadata {
+  if (!request) {
+    return {
+      hostname: 'server',
+      ip: '',
+      language: 'en',
+      referrer: '',
+      requestUrl: '/',
+      userAgent: '',
+    };
+  }
+
+  const headers = request.headers;
+  const host = headers.get('host') || 'server';
+  const protocol = headers.get('x-forwarded-proto') || 'https';
+
+  let requestUrl = '/';
+  try {
+    const parsed = new URL(request.url);
+    requestUrl = parsed.pathname + parsed.search;
+  } catch {
+    // Keep default
+  }
+
+  return {
+    hostname: host,
+    ip: headers.get('x-forwarded-for')?.split(',')[0]?.trim() || headers.get('x-real-ip') || '',
+    language: headers.get('accept-language')?.split(',')[0] || 'en',
+    referrer: headers.get('referer') || '',
+    requestUrl,
+    userAgent: headers.get('user-agent') || `${protocol} server`,
+  };
+}
+
+function toAbsoluteUrl(
+  rawUrl: string,
+  request?: NextRequest | Request,
+  fallbackHost = 'server',
+): string {
+  if (/^https?:\/\//i.test(rawUrl)) {
+    return rawUrl;
+  }
+
+  const cleanPath = rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`;
+
+  if (request) {
+    try {
+      const parsed = new URL(request.url);
+      return `${parsed.origin}${cleanPath}`;
+    } catch {
+      // Continue to host-based fallback
+    }
+  }
+
+  const normalizedHost = fallbackHost || 'localhost';
+  return `https://${normalizedHost}${cleanPath}`;
+}
+
+function toValidReferrer(rawReferrer: string | undefined): string | undefined {
+  if (!rawReferrer) return undefined;
+
+  if (/^https?:\/\//i.test(rawReferrer)) {
+    return rawReferrer;
+  }
+
+  return undefined;
 }
 
 /**
@@ -60,70 +144,54 @@ export async function trackServerEvent(
   config: ServerTrackConfig,
   options: ServerTrackOptions = {},
 ): Promise<{ ok: boolean; error?: string }> {
-  const { host, websiteId, linkId, pixelId } = config;
+  const { host, websiteId, apiKey } = config;
   const { event, data, url, title, referrer, id, tag, request } = options;
 
-  const baseUrl = host.replace(/\/$/, '');
-
-  // Extract info from request if provided
-  let hostname = 'server';
-  let language = 'en';
-  let userAgent = '';
-  let ip = '';
-  let requestUrl = url || '/';
-  let requestReferrer = referrer || '';
-
-  if (request) {
-    const headers = request.headers;
-    hostname = headers.get('host') || 'server';
-    language = headers.get('accept-language')?.split(',')[0] || 'en';
-    userAgent = headers.get('user-agent') || '';
-    ip = headers.get('x-forwarded-for')?.split(',')[0] || headers.get('x-real-ip') || '';
-
-    if (request instanceof Request && request.url) {
-      try {
-        const reqUrl = new URL(request.url);
-        if (!url) requestUrl = reqUrl.pathname + reqUrl.search;
-      } catch {
-        // Invalid URL, use default
-      }
-    }
-
-    if (!referrer) {
-      requestReferrer = headers.get('referer') || '';
-    }
+  if (!websiteId) {
+    return {
+      ok: false,
+      error: 'websiteId is required for collect contract (linkId/pixelId are unsupported)',
+    };
   }
 
-  const payload: Record<string, unknown> = {
-    hostname,
-    language,
-    screen: '0x0',
-    url: requestUrl,
-    title: title || '',
-    referrer: requestReferrer,
-    ...(event && { name: event }),
-    ...(data && { data }),
-    ...(id && { id }),
-    ...(tag && { tag }),
+  const baseUrl = host.replace(/\/$/, '');
+  const metadata = extractRequestMetadata(request);
+  const { sessionId, visitorId } = resolveSessionVisitorIds(config);
+
+  const payloadProperties: EventData = {
+    ...data,
   };
 
-  // Add the appropriate ID type
-  if (websiteId) payload.website = websiteId;
-  else if (linkId) payload.link = linkId;
-  else if (pixelId) payload.pixel = pixelId;
+  if (title) payloadProperties.title = title;
+  if (tag) payloadProperties.tag = tag;
+  if (id) payloadProperties.distinctId = id;
+  payloadProperties.hostname = metadata.hostname;
+  payloadProperties.language = metadata.language;
+
+  const eventUrl = toAbsoluteUrl(url || metadata.requestUrl || '/', request, metadata.hostname);
+  const eventReferrer = toValidReferrer(referrer || metadata.referrer);
+
+  const payload = {
+    websiteId,
+    sessionId,
+    visitorId,
+    url: eventUrl,
+    eventType: event ? 'custom_event' : 'pageview',
+    ...(event && { eventName: event }),
+    ...(eventReferrer && { referrer: eventReferrer }),
+    ...(Object.keys(payloadProperties).length > 0 && { properties: payloadProperties }),
+  };
 
   try {
-    const response = await fetch(`${baseUrl}/api/send`, {
+    const response = await fetch(`${baseUrl}/collect`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': userAgent,
-        ...(ip && { 'X-Forwarded-For': ip }),
+        'x-api-key': apiKey,
+        ...(metadata.userAgent && { 'User-Agent': metadata.userAgent }),
+        ...(metadata.ip && { 'X-Forwarded-For': metadata.ip }),
       },
-      body: JSON.stringify({
-        type: 'event',
-        payload,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -159,60 +227,17 @@ export async function identifyServerSession(
   config: ServerTrackConfig,
   options: Pick<ServerTrackOptions, 'id' | 'data' | 'request'>,
 ): Promise<{ ok: boolean; error?: string }> {
-  const { host, websiteId } = config;
-  const { id, data, request } = options;
-
-  const baseUrl = host.replace(/\/$/, '');
-
-  // Extract info from request
-  let hostname = 'server';
-  let language = 'en';
-  let userAgent = '';
-  let ip = '';
-
-  if (request) {
-    const headers = request.headers;
-    hostname = headers.get('host') || 'server';
-    language = headers.get('accept-language')?.split(',')[0] || 'en';
-    userAgent = headers.get('user-agent') || '';
-    ip = headers.get('x-forwarded-for')?.split(',')[0] || headers.get('x-real-ip') || '';
-  }
-
-  const payload = {
-    website: websiteId,
-    hostname,
-    language,
-    screen: '0x0',
-    url: '/',
-    title: '',
-    referrer: '',
-    ...(id && { id }),
-    ...(data && { data }),
+  const identifyData: EventData = {
+    ...options.data,
   };
 
-  try {
-    const response = await fetch(`${baseUrl}/api/send`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': userAgent,
-        ...(ip && { 'X-Forwarded-For': ip }),
-      },
-      body: JSON.stringify({
-        type: 'identify',
-        payload,
-      }),
-    });
-
-    if (!response.ok) {
-      return { ok: false, error: `HTTP ${response.status}` };
-    }
-
-    return { ok: true };
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+  if (options.id) {
+    identifyData.distinctId = options.id;
   }
+
+  return trackServerEvent(config, {
+    event: 'identify',
+    data: identifyData,
+    request: options.request,
+  });
 }

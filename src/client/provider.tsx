@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   EnhancedIdentityData,
   EntrolyticsConfig,
@@ -26,11 +26,52 @@ interface EntrolyticsProviderProps extends EntrolyticsConfig {
   children: ReactNode;
 }
 
+const SESSION_KEY = '__entro_sid';
+const VISITOR_KEY = '__entro_vid';
+
+function generateUuid(): string {
+  if (
+    typeof globalThis.crypto !== 'undefined' &&
+    typeof globalThis.crypto.randomUUID === 'function'
+  ) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.floor(Math.random() * 16);
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+function getOrCreateSessionId(): string {
+  if (typeof window === 'undefined') return generateUuid();
+
+  const existing = window.sessionStorage.getItem(SESSION_KEY);
+  if (existing) return existing;
+
+  const sessionId = generateUuid();
+  window.sessionStorage.setItem(SESSION_KEY, sessionId);
+  return sessionId;
+}
+
+function getOrCreateVisitorId(): string {
+  if (typeof window === 'undefined') return generateUuid();
+
+  const existing = window.localStorage.getItem(VISITOR_KEY);
+  if (existing) return existing;
+
+  const visitorId = generateUuid();
+  window.localStorage.setItem(VISITOR_KEY, visitorId);
+  return visitorId;
+}
+
 export function EntrolyticsProvider({
   children,
   websiteId,
-  linkId,
-  pixelId,
+  apiKey,
+  linkId: _linkId,
+  pixelId: _pixelId,
   host,
   autoTrack = true,
   tag: initialTag,
@@ -54,6 +95,7 @@ export function EntrolyticsProvider({
   const cacheRef = useRef<string | undefined>(undefined);
   const currentUrlRef = useRef<string>('');
   const currentRefRef = useRef<string>('');
+  const missingApiKeyWarned = useRef(false);
 
   // Determine endpoint
   const endpoint = useMemo(() => {
@@ -61,19 +103,18 @@ export function EntrolyticsProvider({
       return proxy.collectPath || '/api/collect';
     }
 
-    // Choose endpoint based on edge runtime configuration
-    const endpointPath = useEdgeRuntime ? '/api/send-edge' : '/api/send';
+    const endpointPath = '/collect';
 
     if (host) {
       return `${host.replace(/\/$/, '')}${endpointPath}`;
     }
     return endpointPath;
-  }, [host, proxy, useEdgeRuntime]);
+  }, [host, proxy]);
 
   // Check if tracking should be disabled
   const checkTrackingDisabled = useCallback((): boolean => {
     if (typeof window === 'undefined') return true;
-    if (!websiteId && !linkId && !pixelId) return true;
+    if (!websiteId) return true;
     if (!isEnabled) return true;
 
     // Check localStorage disable flag
@@ -119,13 +160,10 @@ export function EntrolyticsProvider({
       id: identity,
     };
 
-    // Add the appropriate ID type
     if (websiteId) payload.website = websiteId;
-    else if (linkId) payload.link = linkId;
-    else if (pixelId) payload.pixel = pixelId;
 
     return payload;
-  }, [websiteId, linkId, pixelId, currentTag, identity]);
+  }, [websiteId, currentTag, identity]);
 
   // Debug logger
   const log = useCallback(
@@ -137,11 +175,49 @@ export function EntrolyticsProvider({
     [debug],
   );
 
+  const toAbsoluteUrl = useCallback((rawUrl: string): string => {
+    if (/^https?:\/\//i.test(rawUrl)) {
+      return rawUrl;
+    }
+
+    if (typeof window === 'undefined') {
+      const normalized = rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`;
+      return `https://localhost${normalized}`;
+    }
+
+    try {
+      return new URL(rawUrl, window.location.origin).toString();
+    } catch {
+      return window.location.href;
+    }
+  }, []);
+
+  const toValidReferrer = useCallback((rawReferrer?: string): string | undefined => {
+    if (!rawReferrer) return undefined;
+    if (/^https?:\/\//i.test(rawReferrer)) {
+      return rawReferrer;
+    }
+    return undefined;
+  }, []);
+
   // Send data to endpoint
   const send = useCallback(
     async (payload: EventPayload | IdentifyPayload, type: PayloadType = 'event'): Promise<void> => {
       if (checkTrackingDisabled()) {
         log('Tracking disabled, skipping', type);
+        return;
+      }
+
+      if (!websiteId) {
+        log('websiteId is required for collect tracking, skipping');
+        return;
+      }
+
+      if (!apiKey) {
+        if (!missingApiKeyWarned.current) {
+          log('apiKey is required for collect tracking, skipping until configured');
+          missingApiKeyWarned.current = true;
+        }
         return;
       }
 
@@ -160,27 +236,102 @@ export function EntrolyticsProvider({
       log('Sending', type, finalPayload);
 
       try {
+        const eventPayload = finalPayload as Partial<EventPayload> & Partial<TrackedProperties>;
+        const rawUrl =
+          typeof eventPayload.url === 'string' && eventPayload.url.length > 0
+            ? eventPayload.url
+            : currentUrlRef.current || window.location.pathname + window.location.search;
+
+        const url = toAbsoluteUrl(rawUrl);
+        const sessionId = getOrCreateSessionId();
+        const visitorId = getOrCreateVisitorId();
+
+        const properties: Record<string, unknown> = {
+          ...(eventPayload.data && typeof eventPayload.data === 'object' ? eventPayload.data : {}),
+        };
+
+        if (eventPayload.tag) properties.tag = eventPayload.tag;
+        if (eventPayload.id) properties.distinctId = eventPayload.id;
+
+        if (type === 'identify') {
+          properties.identify = true;
+        }
+
+        const eventName =
+          typeof eventPayload.name === 'string' && eventPayload.name.length > 0
+            ? eventPayload.name
+            : type === 'identify'
+              ? 'identify'
+              : undefined;
+
+        const eventType = eventName ? 'custom_event' : 'pageview';
+        const parsedUrl = new URL(url);
+        const normalizedReferrer = toValidReferrer(eventPayload.referrer);
+
+        const collectPayload = {
+          websiteId,
+          sessionId,
+          visitorId,
+          url,
+          eventType,
+          ...(eventName && { eventName }),
+          ...(normalizedReferrer && { referrer: normalizedReferrer }),
+          screenWidth: window.screen.width,
+          screenHeight: window.screen.height,
+          ...(parsedUrl.searchParams.get('utm_source') && {
+            utmSource: parsedUrl.searchParams.get('utm_source'),
+          }),
+          ...(parsedUrl.searchParams.get('utm_medium') && {
+            utmMedium: parsedUrl.searchParams.get('utm_medium'),
+          }),
+          ...(parsedUrl.searchParams.get('utm_campaign') && {
+            utmCampaign: parsedUrl.searchParams.get('utm_campaign'),
+          }),
+          ...(parsedUrl.searchParams.get('utm_term') && {
+            utmTerm: parsedUrl.searchParams.get('utm_term'),
+          }),
+          ...(parsedUrl.searchParams.get('utm_content') && {
+            utmContent: parsedUrl.searchParams.get('utm_content'),
+          }),
+          ...(Object.keys(properties).length > 0 && { properties }),
+        };
+
         const res = await fetch(endpoint, {
           method: 'POST',
-          body: JSON.stringify({ type, payload: finalPayload }),
+          body: JSON.stringify(collectPayload),
           headers: {
             'Content-Type': 'application/json',
+            'x-api-key': apiKey,
             ...(cacheRef.current && { 'x-entrolytics-cache': cacheRef.current }),
           },
           credentials: 'omit',
           keepalive: true,
         });
 
-        const data = await res.json();
-        if (data) {
-          if (data.disabled) setIsEnabled(false);
-          if (data.cache) cacheRef.current = data.cache;
+        const responseText = await res.text();
+        if (responseText) {
+          try {
+            const data = JSON.parse(responseText) as { cache?: string; disabled?: boolean };
+            if (data.disabled) setIsEnabled(false);
+            if (data.cache) cacheRef.current = data.cache;
+          } catch {
+            // Non-JSON response is acceptable for fire-and-forget endpoint
+          }
         }
       } catch (error) {
         log('Error sending', type, error);
       }
     },
-    [endpoint, checkTrackingDisabled, beforeSend, log],
+    [
+      apiKey,
+      endpoint,
+      checkTrackingDisabled,
+      beforeSend,
+      log,
+      websiteId,
+      toAbsoluteUrl,
+      toValidReferrer,
+    ],
   );
 
   // Track function with multiple overloads
@@ -335,7 +486,7 @@ export function EntrolyticsProvider({
   // Auto-track initial page view
   useEffect(() => {
     if (!isReady || !autoTrack || checkTrackingDisabled()) return;
-    track();
+    void track();
   }, [isReady, autoTrack, checkTrackingDisabled, track]);
 
   // Handle history changes for SPA navigation
@@ -405,7 +556,7 @@ export function EntrolyticsProvider({
       try {
         const url = new URL(href, window.location.origin);
         if (url.host !== window.location.host) {
-          trackOutboundLink(href);
+          void trackOutboundLink(href);
         }
       } catch {
         // Invalid URL, skip
@@ -433,6 +584,7 @@ export function EntrolyticsProvider({
   const config = useMemo(
     () => ({
       websiteId,
+      apiKey,
       host,
       autoTrack,
       tag: currentTag,
@@ -451,6 +603,7 @@ export function EntrolyticsProvider({
     }),
     [
       websiteId,
+      apiKey,
       host,
       autoTrack,
       currentTag,

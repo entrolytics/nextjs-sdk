@@ -1,8 +1,11 @@
 import type { NextRequest } from 'next/server';
+import { resolveSessionVisitorIds } from './identity';
 
 interface ProxyHandlerConfig {
   /** Entrolytics host URL */
   host: string;
+  /** Public collection API key */
+  apiKey: string;
   /** Website ID (required for cloak mode) */
   websiteId?: string;
   /** Proxy mode: 'direct' passes through, 'cloak' hides websiteId server-side */
@@ -30,7 +33,7 @@ interface ProxyHandlers {
  * ```
  */
 export function createProxyHandler(config: ProxyHandlerConfig): ProxyHandlers {
-  const { host, websiteId, mode = 'direct' } = config;
+  const { host, apiKey, websiteId, mode = 'direct' } = config;
   const baseUrl = host.replace(/\/$/, '');
 
   const GET = async (request: NextRequest): Promise<Response> => {
@@ -68,11 +71,42 @@ export function createProxyHandler(config: ProxyHandlerConfig): ProxyHandlers {
 
   const POST = async (request: NextRequest): Promise<Response> => {
     try {
-      const body = await request.json();
+      const body = (await request.json()) as Record<string, unknown>;
+
+      if ('type' in body && 'payload' in body) {
+        return Response.json(
+          {
+            error:
+              'Legacy /api/send envelope is not supported in proxy mode. Send collect payload directly.',
+          },
+          { status: 400 },
+        );
+      }
+
+      const normalizedPayload: Record<string, unknown> = { ...body };
 
       // In cloak mode, inject websiteId into the payload
-      if (mode === 'cloak' && websiteId && body.payload) {
-        body.payload.website = websiteId;
+      if (mode === 'cloak' && websiteId) {
+        normalizedPayload.websiteId = websiteId;
+      }
+
+      if (!normalizedPayload.websiteId || typeof normalizedPayload.websiteId !== 'string') {
+        return Response.json({ error: 'websiteId is required' }, { status: 400 });
+      }
+
+      if (!normalizedPayload.sessionId || !normalizedPayload.visitorId) {
+        const { sessionId, visitorId } = resolveSessionVisitorIds({
+          sessionId:
+            typeof normalizedPayload.sessionId === 'string'
+              ? normalizedPayload.sessionId
+              : undefined,
+          visitorId:
+            typeof normalizedPayload.visitorId === 'string'
+              ? normalizedPayload.visitorId
+              : undefined,
+        });
+        normalizedPayload.sessionId = sessionId;
+        normalizedPayload.visitorId = visitorId;
       }
 
       const clientIp =
@@ -80,18 +114,24 @@ export function createProxyHandler(config: ProxyHandlerConfig): ProxyHandlers {
         request.headers.get('x-real-ip') ||
         '';
 
-      const response = await fetch(`${baseUrl}/api/send`, {
+      const response = await fetch(`${baseUrl}/collect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-api-key': apiKey,
           'User-Agent': request.headers.get('user-agent') || '',
           'X-Forwarded-For': clientIp,
           'X-Real-IP': clientIp,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(normalizedPayload),
       });
 
-      const data = await response.json();
+      let data: unknown;
+      try {
+        data = await response.json();
+      } catch {
+        data = { error: 'Upstream response was not valid JSON' };
+      }
 
       return Response.json(data, {
         status: response.status,

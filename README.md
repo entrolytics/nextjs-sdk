@@ -1,10 +1,10 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/entrolytics/.github/main/media/entrov2.png" alt="Entrolytics" width="64" height="64">
+- <img src="https://raw.githubusercontent.com/entrolytics/.github/main/media/entrov2.png" alt="Entrolytics" width="64" height="64">
 
-  [![npm](https://img.shields.io/npm/v/@entrolytics/nextjs-sdk.svg?logo=npm)](https://www.npmjs.com/package/@entrolytics/nextjs-sdk)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Next.js](https://img.shields.io/badge/Next.js-14+-000000.svg?logo=next.js)](https://nextjs.org/)
+[![npm](https://img.shields.io/npm/v/@entrolytics/nextjs-sdk.svg?logo=npm)](https://www.npmjs.com/package/@entrolytics/nextjs-sdk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg?logo=typescript\&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14+-000000.svg?logo=next.js)](https://nextjs.org/)
 
 </div>
 
@@ -15,6 +15,7 @@
 **@entrolytics/nextjs-sdk** is the official Next.js SDK for Entrolytics - first-party growth analytics for the edge. Built specifically for Next.js 13+ App Router with SSR safety and zero-config setup.
 
 **Why use this SDK?**
+
 - App Router native with proper server/client separation
 - Zero hydration mismatches - SSR safe from the ground up
 - Server-side tracking from API routes and Server Actions
@@ -27,6 +28,7 @@
 <td width="50%">
 
 ### Analytics
+
 - Automatic page view tracking
 - Custom event and revenue tracking
 - User identification
@@ -36,6 +38,7 @@
 <td width="50%">
 
 ### Developer Experience
+
 - `<Analytics />` zero-config component
 - `useEntrolytics` hook for all functionality
 - Server Actions and API route support
@@ -111,11 +114,7 @@ import { useEntrolytics } from '@entrolytics/nextjs';
 export function SignupButton() {
   const { track } = useEntrolytics();
 
-  return (
-    <button onClick={() => track('signup-click', { plan: 'premium' })}>
-      Sign Up
-    </button>
-  );
+  return <button onClick={() => track('signup-click', { plan: 'premium' })}>Sign Up</button>;
 }
 ```
 
@@ -126,11 +125,7 @@ export function SignupButton() {
 Use the `<Analytics />` component with props:
 
 ```tsx
-<Analytics
-  debug={true}
-  autoTrack={true}
-  trackOutboundLinks={true}
-/>
+<Analytics debug={true} autoTrack={true} trackOutboundLinks={true} />
 ```
 
 All configuration options are optional - the component reads `websiteId` and `host` from environment variables.
@@ -143,25 +138,26 @@ For more control, use `<EntrolyticsProvider>` directly:
 import { EntrolyticsProvider } from '@entrolytics/nextjs';
 
 <EntrolyticsProvider
-  websiteId="your-website-id"           // Required
-  host="https://analytics.example.com"  // Optional: custom host
-  autoTrack={true}                      // Auto page views (default: true)
-  useEdgeRuntime={true}                 // Use edge endpoints (default: true)
-  tag="production"                      // A/B testing tag
-  domains={['example.com']}             // Restrict to domains
-  excludeSearch={false}                 // Strip query params
-  excludeHash={true}                    // Strip hash fragments
-  respectDoNotTrack={false}             // Honor DNT header
-  ignoreLocalhost={true}                // Skip localhost
-  trackOutboundLinks={true}             // Track external links
-  debug={false}                         // Console logging
-  beforeSend={(type, payload) => {      // Transform/filter
+  websiteId="your-website-id" // Required
+  host="https://analytics.example.com" // Optional: custom host
+  autoTrack={true} // Auto page views (default: true)
+  useEdgeRuntime={true} // Use edge endpoints (default: true)
+  tag="production" // A/B testing tag
+  domains={['example.com']} // Restrict to domains
+  excludeSearch={false} // Strip query params
+  excludeHash={true} // Strip hash fragments
+  respectDoNotTrack={false} // Honor DNT header
+  ignoreLocalhost={true} // Skip localhost
+  trackOutboundLinks={true} // Track external links
+  debug={false} // Console logging
+  beforeSend={(type, payload) => {
+    // Transform/filter
     if (isAdmin) return null;
     return payload;
   }}
 >
   {children}
-</EntrolyticsProvider>
+</EntrolyticsProvider>;
 ```
 
 ### Runtime Configuration
@@ -169,6 +165,7 @@ import { EntrolyticsProvider } from '@entrolytics/nextjs';
 The `useEdgeRuntime` prop controls which collection endpoint is used:
 
 **Edge Runtime (default)** - Optimized for speed:
+
 ```tsx
 <EntrolyticsProvider
   websiteId="your-website-id"
@@ -180,29 +177,28 @@ The `useEdgeRuntime` prop controls which collection endpoint is used:
 
 - **Latency**: 50-100ms via edge proxy to Node.js backend
 - **Best for**: Most production applications
-- **Endpoint**: Uses `/api/send-edge` (edge proxy with global distribution)
+- **Collection Path**: Uses `/collect` by default, or `/api/collect` when proxy mode is enabled
 
 **Node.js Runtime** - Direct backend connection:
+
 ```tsx
-<EntrolyticsProvider
-  websiteId="your-website-id"
-  useEdgeRuntime={false}
->
+<EntrolyticsProvider websiteId="your-website-id" useEdgeRuntime={false}>
   {children}
 </EntrolyticsProvider>
 ```
 
 - **Features**: Direct Node.js connection, ClickHouse export, MaxMind GeoIP
 - **Best for**: Self-hosted deployments, custom backend configurations
-- **Endpoint**: Uses `/api/send` (Node.js runtime)
+- **Collection Path**: Uses `/collect` by default, or `/api/collect` when proxy mode is enabled
 - **Latency**: 50-150ms (regional)
 
 **When to use Node.js runtime**:
+
 - Self-hosted deployments without edge runtime
 - Custom backend configurations
 - Testing/development environments
 
-See the [Intelligent Routing](/docs/concepts/routing) guide for more details on collection endpoints.
+See the [Intelligent Routing](/legacy-docs/concepts/routing) guide for more details on collection endpoints.
 
 ## Hooks
 
@@ -210,15 +206,15 @@ See the [Intelligent Routing](/docs/concepts/routing) guide for more details on 
 
 ```tsx
 const {
-  track,              // Track events
-  trackView,          // Manual page view
-  identify,           // User identification
-  trackRevenue,       // Revenue tracking
-  trackOutboundLink,  // Outbound link tracking
-  setTag,             // Change A/B test tag
-  generateEnhancedIdentity,  // Browser metadata
-  isReady,            // Tracker ready state
-  isEnabled,          // Tracking enabled state
+  track, // Track events
+  trackView, // Manual page view
+  identify, // User identification
+  trackRevenue, // Revenue tracking
+  trackOutboundLink, // Outbound link tracking
+  setTag, // Change A/B test tag
+  generateEnhancedIdentity, // Browser metadata
+  isReady, // Tracker ready state
+  isEnabled, // Tracking enabled state
 } = useEntrolytics();
 ```
 
@@ -250,7 +246,7 @@ const { trackEvent, createClickHandler } = useEventTracker({
 trackEvent();
 
 // Use as click handler
-<button onClick={createClickHandler('cta-click')}>Click</button>
+<button onClick={createClickHandler('cta-click')}>Click</button>;
 ```
 
 ## Components
@@ -299,7 +295,7 @@ export async function POST(request: Request) {
       event: 'api-call',
       data: { endpoint: '/api/users' },
       request,
-    }
+    },
   );
 
   return Response.json({ success: true });

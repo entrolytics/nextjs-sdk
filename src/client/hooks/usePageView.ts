@@ -28,7 +28,6 @@ export function usePageView(options: UsePageViewOptions = {}): void {
   const hasTrackedRef = useRef(false);
   const prevDepsRef = useRef<unknown[]>(deps);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: deps is intentionally spread and compared manually
   useEffect(() => {
     if (!isReady || !isEnabled || !enabled) return;
 
@@ -40,9 +39,9 @@ export function usePageView(options: UsePageViewOptions = {}): void {
 
     // Track if first render or deps changed
     if (!hasTrackedRef.current || depsChanged) {
-      trackView(url, referrer);
+      void trackView(url, referrer);
       hasTrackedRef.current = true;
-      prevDepsRef.current = deps;
+      prevDepsRef.current = [...deps];
     }
-  }, [isReady, isEnabled, enabled, url, referrer, trackView, ...deps]);
+  }, [isReady, isEnabled, enabled, url, referrer, trackView, deps]);
 }

@@ -1,17 +1,13 @@
 'use client';
 
+import { API_ROUTES } from '@entrolytics/shared';
+import type { NavigationType, VitalRating, VitalType } from '@entrolytics/shared';
 import { useCallback, useEffect, useRef } from 'react';
 import { useEntrolytics } from './useEntrolytics';
 
-export type WebVitalMetric = 'LCP' | 'INP' | 'CLS' | 'TTFB' | 'FCP';
-export type WebVitalRating = 'good' | 'needs-improvement' | 'poor';
-export type NavigationType =
-  | 'navigate'
-  | 'reload'
-  | 'back-forward'
-  | 'back-forward-cache'
-  | 'prerender'
-  | 'restore';
+export type WebVitalMetric = VitalType;
+export type WebVitalRating = VitalRating;
+export type { NavigationType };
 
 export interface WebVitalData {
   metric: WebVitalMetric;
@@ -55,9 +51,9 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
 
       const host = config.host || 'https://entrolytics.click';
       const payload = {
-        website: config.websiteId,
-        metric: data.metric,
-        value: data.value,
+        websiteId: config.websiteId,
+        metricName: data.metric,
+        metricValue: data.value,
         rating: data.rating,
         delta: data.delta,
         id: data.id,
@@ -68,7 +64,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
       };
 
       try {
-        await fetch(`${host}/api/collect/vitals`, {
+        await fetch(`${host}${API_ROUTES.collectVitals}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

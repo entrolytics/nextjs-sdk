@@ -1,8 +1,11 @@
 import type { NextRequest, NextResponse } from 'next/server';
+import { resolveSessionVisitorIds } from './identity';
 
 interface MiddlewareConfig {
   /** Entrolytics host URL */
   host: string;
+  /** Public collection API key */
+  apiKey: string;
   /** Website ID */
   websiteId: string;
   /** Route patterns to track (glob patterns) */
@@ -17,6 +20,11 @@ type MiddlewareHandler = (
   request: NextRequest,
   response?: NextResponse,
 ) => Promise<NextResponse | Response | undefined> | NextResponse | Response | undefined;
+
+function routeToRegex(pattern: string): RegExp {
+  const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+  return new RegExp(`^${escaped}$`);
+}
 
 /**
  * Creates a middleware wrapper that tracks requests to specified routes.
@@ -50,6 +58,7 @@ type MiddlewareHandler = (
 export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareHandler {
   const {
     host,
+    apiKey,
     websiteId,
     trackRoutes = [],
     excludeRoutes = ['/api/collect', '/_next', '/favicon.ico'],
@@ -57,12 +66,6 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
   } = config;
 
   const baseUrl = host.replace(/\/$/, '');
-
-  // Convert glob patterns to regex
-  const routeToRegex = (pattern: string): RegExp => {
-    const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
-    return new RegExp(`^${escaped}$`);
-  };
 
   const trackPatterns = trackRoutes.map(routeToRegex);
   const excludePatterns = excludeRoutes.map(routeToRegex);
@@ -91,35 +94,41 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
       const language = headers.get('accept-language')?.split(',')[0] || 'en';
       const userAgent = headers.get('user-agent') || '';
       const ip = headers.get('x-forwarded-for')?.split(',')[0] || headers.get('x-real-ip') || '';
+      const { sessionId, visitorId } = resolveSessionVisitorIds();
+      const pageUrl = request.nextUrl.toString();
 
-      const payload = {
-        website: websiteId,
+      const properties: Record<string, string> = {
+        method: request.method,
+        pathname,
         hostname,
         language,
-        screen: '0x0',
-        url: pathname + request.nextUrl.search,
-        title: '',
-        referrer: headers.get('referer') || '',
-        name: 'middleware-request',
-        data: {
-          method: request.method,
-          pathname,
-        },
-        ...(tag && { tag }),
+      };
+
+      if (tag) {
+        properties.tag = tag;
+      }
+
+      const payload = {
+        websiteId,
+        sessionId,
+        visitorId,
+        url: pageUrl,
+        eventType: 'custom_event',
+        eventName: 'middleware-request',
+        ...(headers.get('referer') && { referrer: headers.get('referer') as string }),
+        properties,
       };
 
       // Fire and forget - don't await
-      fetch(`${baseUrl}/api/send`, {
+      fetch(`${baseUrl}/collect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': userAgent,
+          'x-api-key': apiKey,
+          ...(userAgent && { 'User-Agent': userAgent }),
           ...(ip && { 'X-Forwarded-For': ip }),
         },
-        body: JSON.stringify({
-          type: 'event',
-          payload,
-        }),
+        body: JSON.stringify(payload),
       }).catch(error => {
         console.error('[Entrolytics Middleware] tracking error:', error);
       });

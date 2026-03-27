@@ -1,15 +1,11 @@
 'use client';
 
+import { API_ROUTES } from '@entrolytics/shared';
+import type { FormEventType } from '@entrolytics/shared';
 import { useCallback, useEffect, useRef } from 'react';
 import { useEntrolytics } from './useEntrolytics';
 
-export type FormEventType =
-  | 'start'
-  | 'field_focus'
-  | 'field_blur'
-  | 'field_error'
-  | 'submit'
-  | 'abandon';
+export type { FormEventType };
 
 export interface FormEventData {
   eventType: FormEventType;
@@ -102,11 +98,11 @@ export function useFormTracking(options: UseFormTrackingOptions) {
       };
 
       try {
-        await fetch(`${host}/api/collect/forms`, {
+        await fetch(`${host}${API_ROUTES.collectForms}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            website: config.websiteId,
+            websiteId: config.websiteId,
             ...payload,
           }),
           keepalive: true,
@@ -121,7 +117,7 @@ export function useFormTracking(options: UseFormTrackingOptions) {
   const trackStart = useCallback(() => {
     if (stateRef.current.startTime !== null) return;
     stateRef.current.startTime = Date.now();
-    trackEvent({ eventType: 'start' });
+    void trackEvent({ eventType: 'start' });
   }, [trackEvent]);
 
   const trackFieldFocus = useCallback(
@@ -139,7 +135,7 @@ export function useFormTracking(options: UseFormTrackingOptions) {
 
       state.lastFieldName = fieldName;
 
-      trackEvent({
+      void trackEvent({
         eventType: 'field_focus',
         fieldName,
         fieldType,
@@ -156,7 +152,7 @@ export function useFormTracking(options: UseFormTrackingOptions) {
       const fieldStartTime = state.fieldStartTimes.get(fieldName);
       const timeOnField = fieldStartTime ? Date.now() - fieldStartTime : undefined;
 
-      trackEvent({
+      void trackEvent({
         eventType: 'field_blur',
         fieldName,
         fieldType,
@@ -170,7 +166,7 @@ export function useFormTracking(options: UseFormTrackingOptions) {
 
   const trackFieldError = useCallback(
     (fieldName: string, errorMessage: string, fieldType?: string, fieldIndex?: number) => {
-      trackEvent({
+      void trackEvent({
         eventType: 'field_error',
         fieldName,
         fieldType,
@@ -186,7 +182,7 @@ export function useFormTracking(options: UseFormTrackingOptions) {
 
   const trackSubmit = useCallback(
     (success: boolean) => {
-      trackEvent({
+      void trackEvent({
         eventType: 'submit',
         success,
         timeSinceStart: stateRef.current.startTime
@@ -207,7 +203,7 @@ export function useFormTracking(options: UseFormTrackingOptions) {
   const trackAbandon = useCallback(() => {
     if (!stateRef.current.hasInteracted) return;
 
-    trackEvent({
+    void trackEvent({
       eventType: 'abandon',
       fieldName: stateRef.current.lastFieldName || undefined,
       timeSinceStart: stateRef.current.startTime
