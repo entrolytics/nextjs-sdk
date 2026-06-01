@@ -3,6 +3,7 @@
 import { API_ROUTES } from '@entrolytics/shared';
 import type { NavigationType, VitalRating, VitalType } from '@entrolytics/shared';
 import { useCallback, useEffect, useRef } from 'react';
+import { buildCollectionHeaders, getOrCreateSessionId, getOrCreateVisitorId } from '../identity';
 import { useEntrolytics } from './useEntrolytics';
 
 export type WebVitalMetric = VitalType;
@@ -49,9 +50,11 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
     async (data: WebVitalData) => {
       if (typeof window === 'undefined') return;
 
-      const host = config.host || 'https://entrolytics.click';
+      const host = config.host || 'https://api.entrolytics.click';
       const payload = {
         websiteId: config.websiteId,
+        sessionId: getOrCreateSessionId(),
+        visitorId: getOrCreateVisitorId(),
         metricName: data.metric,
         metricValue: data.value,
         rating: data.rating,
@@ -66,7 +69,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
       try {
         await fetch(`${host}${API_ROUTES.collectVitals}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: buildCollectionHeaders(config.apiKey),
           body: JSON.stringify(payload),
           keepalive: true,
         });
@@ -74,7 +77,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
         console.error('[Entrolytics] Failed to track vital:', err);
       }
     },
-    [config.websiteId, config.host],
+    [config.apiKey, config.websiteId, config.host],
   );
 
   useEffect(() => {

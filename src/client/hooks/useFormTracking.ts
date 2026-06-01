@@ -3,6 +3,7 @@
 import { API_ROUTES } from '@entrolytics/shared';
 import type { FormEventType } from '@entrolytics/shared';
 import { useCallback, useEffect, useRef } from 'react';
+import { buildCollectionHeaders, getOrCreateSessionId, getOrCreateVisitorId } from '../identity';
 import { useEntrolytics } from './useEntrolytics';
 
 export type { FormEventType };
@@ -89,7 +90,7 @@ export function useFormTracking(options: UseFormTrackingOptions) {
     ) => {
       if (typeof window === 'undefined') return;
 
-      const host = config.host || 'https://entrolytics.click';
+      const host = config.host || 'https://api.entrolytics.click';
       const payload: FormEventData = {
         formId: data.formId || formId,
         formName: data.formName || formName,
@@ -100,9 +101,11 @@ export function useFormTracking(options: UseFormTrackingOptions) {
       try {
         await fetch(`${host}${API_ROUTES.collectForms}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: buildCollectionHeaders(config.apiKey),
           body: JSON.stringify({
             websiteId: config.websiteId,
+            sessionId: getOrCreateSessionId(),
+            visitorId: getOrCreateVisitorId(),
             ...payload,
           }),
           keepalive: true,
@@ -111,7 +114,7 @@ export function useFormTracking(options: UseFormTrackingOptions) {
         console.error('[Entrolytics] Failed to track form event:', err);
       }
     },
-    [config.websiteId, config.host, formId, formName],
+    [config.apiKey, config.websiteId, config.host, formId, formName],
   );
 
   const trackStart = useCallback(() => {

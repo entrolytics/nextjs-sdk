@@ -6,7 +6,7 @@ import type { EntrolyticsConfig } from '../../types';
 
 interface ScriptProps extends Pick<
   EntrolyticsConfig,
-  'websiteId' | 'linkId' | 'pixelId' | 'host' | 'proxy' | 'scriptName'
+  'websiteId' | 'host' | 'proxy' | 'scriptName'
 > {
   /** Additional data attributes */
   autoTrack?: boolean;
@@ -45,8 +45,6 @@ interface ScriptProps extends Pick<
  */
 export function Script({
   websiteId,
-  linkId,
-  pixelId,
   host,
   proxy,
   scriptName = 'script.js',
@@ -73,8 +71,6 @@ export function Script({
     <NextScript
       src={src}
       data-website-id={websiteId}
-      data-link-id={linkId}
-      data-pixel-id={pixelId}
       data-host-url={host}
       data-auto-track={autoTrack ? undefined : 'false'}
       data-domains={domains?.join(',')}

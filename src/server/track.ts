@@ -7,12 +7,8 @@ interface ServerTrackConfig {
   host: string;
   /** Public collection API key */
   apiKey: string;
-  /** Website ID (use one of: websiteId, linkId, or pixelId) */
+  /** Website ID */
   websiteId?: string;
-  /** @deprecated Not supported by collect contract */
-  linkId?: string;
-  /** @deprecated Not supported by collect contract */
-  pixelId?: string;
   /** Optional stable session ID */
   sessionId?: string;
   /** Optional stable visitor ID */
@@ -150,7 +146,7 @@ export async function trackServerEvent(
   if (!websiteId) {
     return {
       ok: false,
-      error: 'websiteId is required for collect contract (linkId/pixelId are unsupported)',
+      error: 'websiteId is required for collect contract',
     };
   }
 

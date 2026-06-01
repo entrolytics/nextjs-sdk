@@ -12,6 +12,7 @@ import type {
   TrackedProperties,
 } from '../types';
 import { EntrolyticsContext } from './context';
+import { generateUuid, getOrCreateSessionId, getOrCreateVisitorId } from './identity';
 
 declare global {
   interface Window {
@@ -26,52 +27,10 @@ interface EntrolyticsProviderProps extends EntrolyticsConfig {
   children: ReactNode;
 }
 
-const SESSION_KEY = '__entro_sid';
-const VISITOR_KEY = '__entro_vid';
-
-function generateUuid(): string {
-  if (
-    typeof globalThis.crypto !== 'undefined' &&
-    typeof globalThis.crypto.randomUUID === 'function'
-  ) {
-    return globalThis.crypto.randomUUID();
-  }
-
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.floor(Math.random() * 16);
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
-function getOrCreateSessionId(): string {
-  if (typeof window === 'undefined') return generateUuid();
-
-  const existing = window.sessionStorage.getItem(SESSION_KEY);
-  if (existing) return existing;
-
-  const sessionId = generateUuid();
-  window.sessionStorage.setItem(SESSION_KEY, sessionId);
-  return sessionId;
-}
-
-function getOrCreateVisitorId(): string {
-  if (typeof window === 'undefined') return generateUuid();
-
-  const existing = window.localStorage.getItem(VISITOR_KEY);
-  if (existing) return existing;
-
-  const visitorId = generateUuid();
-  window.localStorage.setItem(VISITOR_KEY, visitorId);
-  return visitorId;
-}
-
 export function EntrolyticsProvider({
   children,
   websiteId,
   apiKey,
-  linkId: _linkId,
-  pixelId: _pixelId,
   host,
   autoTrack = true,
   tag: initialTag,

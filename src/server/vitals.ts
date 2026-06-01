@@ -88,8 +88,6 @@ export async function trackServerVital(
     visitorId,
     metricName: vital.metric,
     metricValue: vital.value,
-    metric: vital.metric,
-    value: vital.value,
     rating: vital.rating,
     delta: vital.delta,
     id: vital.id,
@@ -143,10 +141,16 @@ export async function trackServerVitalsBatch(
     sessionId,
     visitorId,
     vitals: vitals.map(v => ({
-      ...v,
+      attribution: v.attribution,
+      delta: v.delta,
+      deployId: deployment.deployId,
+      id: v.id,
       metricName: v.metric,
       metricValue: v.value,
-      deployId: deployment.deployId,
+      navigationType: v.navigationType,
+      path: v.path,
+      rating: v.rating,
+      url: v.url,
     })),
   };
 

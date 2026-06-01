@@ -16,12 +16,8 @@ export interface TrackedProperties {
   title: string;
   /** Page URL */
   url: string;
-  /** Website ID (or use link/pixel) */
+  /** Website ID */
   website?: string;
-  /** Link ID (alternative to website) */
-  link?: string;
-  /** Pixel ID (alternative to website) */
-  pixel?: string;
   /** Optional tag for A/B testing */
   tag?: string;
   /** Optional distinct ID for user tracking */
@@ -56,14 +52,10 @@ export type BeforeSendCallback = (
 ) => EventPayload | IdentifyPayload | null | undefined;
 
 export interface EntrolyticsConfig {
-  /** Your Entrolytics website ID (required - use one of: websiteId, linkId, or pixelId) */
+  /** Your Entrolytics website ID */
   websiteId?: string;
   /** Public collection API key (required for /collect endpoints) */
   apiKey?: string;
-  /** Your Entrolytics link ID for link tracking */
-  linkId?: string;
-  /** Your Entrolytics pixel ID for conversion tracking */
-  pixelId?: string;
   /** Custom analytics host URL */
   host?: string;
   /** Automatically track page views (default: true) */
