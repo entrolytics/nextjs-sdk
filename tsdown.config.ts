@@ -8,7 +8,7 @@ export default defineConfig([
     dts: true,
     sourcemap: true,
     clean: true,
-    external: ['react', 'react-dom', 'next'],
+    deps: { neverBundle: ['react', 'react-dom', 'next'] },
     banner: {
       js: '"use client";',
     },
@@ -20,7 +20,7 @@ export default defineConfig([
     dts: true,
     sourcemap: true,
     outDir: 'dist/server',
-    external: ['react', 'react-dom', 'next'],
+    deps: { neverBundle: ['react', 'react-dom', 'next'] },
   },
   // Plugin for next.config
   {
@@ -29,6 +29,6 @@ export default defineConfig([
     dts: true,
     sourcemap: true,
     outDir: 'dist/plugin',
-    external: ['react', 'react-dom', 'next'],
+    deps: { neverBundle: ['react', 'react-dom', 'next'] },
   },
 ]);

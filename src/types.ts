@@ -54,8 +54,8 @@ export type BeforeSendCallback = (
 export interface EntrolyticsConfig {
   /** Your Entrolytics website ID */
   websiteId?: string;
-  /** Public collection API key (required for /collect endpoints) */
-  apiKey?: string;
+  /** Public website collection key (safe to embed in browser code) */
+  clientKey?: string;
   /** Custom analytics host URL */
   host?: string;
   /** Automatically track page views (default: true) */
@@ -70,6 +70,8 @@ export interface EntrolyticsConfig {
   excludeHash?: boolean;
   /** Honor browser Do Not Track setting */
   respectDoNotTrack?: boolean;
+  /** Explicit browser consent state for consent-required websites */
+  consentGranted?: boolean;
   /** Disable tracking on localhost */
   ignoreLocalhost?: boolean;
   /** Transform or cancel events before sending */
@@ -84,8 +86,6 @@ export interface EntrolyticsConfig {
   scriptName?: string;
   /** Enable debug mode with console logging */
   debug?: boolean;
-  /** Use edge runtime endpoints for faster response times (default: true) */
-  useEdgeRuntime?: boolean;
 }
 
 export interface ProxyConfig {

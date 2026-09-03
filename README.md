@@ -3,7 +3,7 @@
 
 [![npm](https://img.shields.io/npm/v/@entrolytics/nextjs-sdk.svg?logo=npm)](https://www.npmjs.com/package/@entrolytics/nextjs-sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg?logo=typescript\&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14+-000000.svg?logo=next.js)](https://nextjs.org/)
 
 </div>
@@ -141,7 +141,6 @@ import { EntrolyticsProvider } from '@entrolytics/nextjs';
   websiteId="your-website-id" // Required
   host="https://analytics.example.com" // Optional: custom host
   autoTrack={true} // Auto page views (default: true)
-  useEdgeRuntime={true} // Use edge endpoints (default: true)
   tag="production" // A/B testing tag
   domains={['example.com']} // Restrict to domains
   excludeSearch={false} // Strip query params
@@ -160,45 +159,7 @@ import { EntrolyticsProvider } from '@entrolytics/nextjs';
 </EntrolyticsProvider>;
 ```
 
-### Runtime Configuration
-
-The `useEdgeRuntime` prop controls which collection endpoint is used:
-
-**Edge Runtime (default)** - Optimized for speed:
-
-```tsx
-<EntrolyticsProvider
-  websiteId="your-website-id"
-  useEdgeRuntime={true} // or omit (default)
->
-  {children}
-</EntrolyticsProvider>
-```
-
-- **Latency**: 50-100ms via edge proxy to Node.js backend
-- **Best for**: Most production applications
-- **Collection Path**: Uses `/collect` by default, or `/api/collect` when proxy mode is enabled
-
-**Node.js Runtime** - Direct backend connection:
-
-```tsx
-<EntrolyticsProvider websiteId="your-website-id" useEdgeRuntime={false}>
-  {children}
-</EntrolyticsProvider>
-```
-
-- **Features**: Direct Node.js connection, ClickHouse export, MaxMind GeoIP
-- **Best for**: Self-hosted deployments, custom backend configurations
-- **Collection Path**: Uses `/collect` by default, or `/api/collect` when proxy mode is enabled
-- **Latency**: 50-150ms (regional)
-
-**When to use Node.js runtime**:
-
-- Self-hosted deployments without edge runtime
-- Custom backend configurations
-- Testing/development environments
-
-See the [Intelligent Routing](/legacy-docs/concepts/routing) guide for more details on collection endpoints.
+The provider sends requests to the canonical collection endpoint, or to the configured proxy path when proxy mode is enabled.
 
 ## Hooks
 

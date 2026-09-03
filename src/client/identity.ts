@@ -16,33 +16,58 @@ export function generateUuid(): string {
 }
 
 const SESSION_KEY = '__entro_sid';
-const VISITOR_KEY = '__entro_vid';
+const SESSION_IDLE_MS = 30 * 60 * 1000;
+let visitorDay: string | undefined;
+let visitorId: string | undefined;
 
 export function getOrCreateSessionId(): string {
   if (typeof window === 'undefined') return generateUuid();
 
-  const existing = window.sessionStorage.getItem(SESSION_KEY);
-  if (existing) return existing;
+  const now = Date.now();
+  try {
+    const stored = JSON.parse(window.sessionStorage.getItem(SESSION_KEY) ?? 'null') as unknown;
+    if (
+      typeof stored === 'object' &&
+      stored !== null &&
+      'id' in stored &&
+      'lastActivity' in stored &&
+      typeof stored.id === 'string' &&
+      typeof stored.lastActivity === 'number' &&
+      now - stored.lastActivity < SESSION_IDLE_MS
+    ) {
+      window.sessionStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({ id: stored.id, lastActivity: now }),
+      );
+      return stored.id;
+    }
+  } catch {
+    // Storage can be unavailable; generate an in-memory session.
+  }
 
   const sessionId = generateUuid();
-  window.sessionStorage.setItem(SESSION_KEY, sessionId);
+  try {
+    window.sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ id: sessionId, lastActivity: now }),
+    );
+  } catch {
+    // Storage can be unavailable; return the generated session.
+  }
   return sessionId;
 }
 
 export function getOrCreateVisitorId(): string {
-  if (typeof window === 'undefined') return generateUuid();
-
-  const existing = window.localStorage.getItem(VISITOR_KEY);
-  if (existing) return existing;
-
-  const visitorId = generateUuid();
-  window.localStorage.setItem(VISITOR_KEY, visitorId);
+  const currentDay = new Date().toISOString().slice(0, 10);
+  if (!visitorId || visitorDay !== currentDay) {
+    visitorDay = currentDay;
+    visitorId = generateUuid();
+  }
   return visitorId;
 }
 
-export function buildCollectionHeaders(apiKey?: string): Record<string, string> {
+export function buildCollectionHeaders(): Record<string, string> {
   return {
     'Content-Type': 'application/json',
-    ...(apiKey ? { 'x-api-key': apiKey } : {}),
   };
 }

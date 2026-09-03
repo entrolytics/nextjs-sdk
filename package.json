@@ -33,23 +33,38 @@
   "type": "module",
   "sideEffects": false,
   "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./server": {
-      "types": "./dist/server/index.d.ts",
-      "import": "./dist/server/index.js",
-      "require": "./dist/server/index.cjs"
+      "import": {
+        "types": "./dist/server/index.d.mts",
+        "default": "./dist/server/index.mjs"
+      },
+      "require": {
+        "types": "./dist/server/index.d.cts",
+        "default": "./dist/server/index.cjs"
+      }
     },
     "./plugin": {
-      "types": "./dist/plugin/index.d.ts",
-      "import": "./dist/plugin/index.js",
-      "require": "./dist/plugin/index.cjs"
+      "import": {
+        "types": "./dist/plugin/index.d.mts",
+        "default": "./dist/plugin/index.mjs"
+      },
+      "require": {
+        "types": "./dist/plugin/index.d.cts",
+        "default": "./dist/plugin/index.cjs"
+      }
     }
   },
   "publishConfig": {
@@ -57,33 +72,35 @@
   },
   "scripts": {
     "build": "tsdown",
+    "check": "pnpm lint:check && pnpm typecheck",
     "dev": "tsdown --watch",
     "lint": "oxlint --fix . && oxfmt --write .",
     "lint:check": "oxlint . && oxfmt --check .",
     "lint:fix-unsafe": "oxlint -f stylish --import-plugin --type-aware --type-check --vitest-plugin --fix --fix-suggestions --fix-dangerously src/",
     "prepublishOnly": "npm run build",
     "test": "vitest run",
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@entrolytics/shared": "^2.4.1",
-    "@entrolytics/trpc-client": "^2.3.1",
-    "@tanstack/react-query": "^5.100.14",
-    "@trpc/client": "^11.17.0",
-    "@trpc/next": "^11.17.0",
-    "@trpc/react-query": "^11.17.0"
+    "@entrolytics/shared": "^2.4.2",
+    "@entrolytics/trpc-client": "^2.3.2",
+    "@tanstack/react-query": "^5.101.4",
+    "@trpc/client": "^11.18.0",
+    "@trpc/next": "^11.18.0",
+    "@trpc/react-query": "^11.18.0"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
-    "@types/react": "^19.2.15",
-    "@types/react-dom": "^19.2.3",
-    "next": "^16.2.6",
-    "oxfmt": "^0.52.0",
-    "oxlint": "^1.67.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "tsdown": "^0.22.1",
-    "typescript": "^6.0.3"
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "next": "^16.3.0",
+    "oxfmt": "^0.63.0",
+    "oxlint": "^1.78.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tsdown": "^0.22.14",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
   },
   "peerDependencies": {
     "next": ">=16.0.0",
@@ -96,10 +113,10 @@
     }
   },
   "optionalDependencies": {
-    "web-vitals": "^5.3.0"
+    "web-vitals": "^6.1.0"
   },
   "engines": {
-    "node": ">=24.x"
+    "node": ">=24.19.0"
   },
-  "packageManager": "pnpm@11.5.0"
+  "packageManager": "pnpm@11.21.0"
 }

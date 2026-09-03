@@ -17,6 +17,10 @@ interface ProxyHandlers {
   POST: (request: NextRequest) => Promise<Response>;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 /**
  * Creates proxy route handlers for ad-blocker bypass.
  *
@@ -71,7 +75,10 @@ export function createProxyHandler(config: ProxyHandlerConfig): ProxyHandlers {
 
   const POST = async (request: NextRequest): Promise<Response> => {
     try {
-      const body = (await request.json()) as Record<string, unknown>;
+      const body: unknown = await request.json();
+      if (!isRecord(body)) {
+        return Response.json({ error: 'Request body must be a JSON object' }, { status: 400 });
+      }
 
       if ('type' in body && 'payload' in body) {
         return Response.json(

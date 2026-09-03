@@ -3,7 +3,12 @@
 import { API_ROUTES } from '@entrolytics/shared';
 import type { FormEventType } from '@entrolytics/shared';
 import { useCallback, useEffect, useRef } from 'react';
-import { buildCollectionHeaders, getOrCreateSessionId, getOrCreateVisitorId } from '../identity';
+import {
+  buildCollectionHeaders,
+  generateUuid,
+  getOrCreateSessionId,
+  getOrCreateVisitorId,
+} from '../identity';
 import { useEntrolytics } from './useEntrolytics';
 
 export type { FormEventType };
@@ -101,9 +106,13 @@ export function useFormTracking(options: UseFormTrackingOptions) {
       try {
         await fetch(`${host}${API_ROUTES.collectForms}`, {
           method: 'POST',
-          headers: buildCollectionHeaders(config.apiKey),
+          headers: buildCollectionHeaders(),
           body: JSON.stringify({
             websiteId: config.websiteId,
+            clientKey: config.clientKey,
+            eventId: generateUuid(),
+            timestamp: new Date().toISOString(),
+            dnt: navigator.doNotTrack === '1',
             sessionId: getOrCreateSessionId(),
             visitorId: getOrCreateVisitorId(),
             ...payload,
@@ -114,7 +123,7 @@ export function useFormTracking(options: UseFormTrackingOptions) {
         console.error('[Entrolytics] Failed to track form event:', err);
       }
     },
-    [config.apiKey, config.websiteId, config.host, formId, formName],
+    [config.clientKey, config.websiteId, config.host, formId, formName],
   );
 
   const trackStart = useCallback(() => {
@@ -216,12 +225,19 @@ export function useFormTracking(options: UseFormTrackingOptions) {
   }, [trackEvent]);
 
   useEffect(() => {
-    if (!autoTrack || !formRef.current) return;
+    if (!autoTrack || !formRef.current) return undefined;
 
     const form = formRef.current;
 
     const handleFocus = (e: FocusEvent) => {
-      const target = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+      const target = e.target;
+      if (
+        !(target instanceof HTMLInputElement) &&
+        !(target instanceof HTMLSelectElement) &&
+        !(target instanceof HTMLTextAreaElement)
+      ) {
+        return;
+      }
       if (!target.name && !target.id) return;
 
       const fieldName = target.name || target.id;
@@ -233,7 +249,14 @@ export function useFormTracking(options: UseFormTrackingOptions) {
     };
 
     const handleBlur = (e: FocusEvent) => {
-      const target = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+      const target = e.target;
+      if (
+        !(target instanceof HTMLInputElement) &&
+        !(target instanceof HTMLSelectElement) &&
+        !(target instanceof HTMLTextAreaElement)
+      ) {
+        return;
+      }
       if (!target.name && !target.id) return;
 
       const fieldName = target.name || target.id;
@@ -254,7 +277,7 @@ export function useFormTracking(options: UseFormTrackingOptions) {
   }, [autoTrack, trackFieldFocus, trackFieldBlur]);
 
   useEffect(() => {
-    if (!trackAbandonment) return;
+    if (!trackAbandonment) return undefined;
 
     const handleBeforeUnload = () => {
       if (stateRef.current.hasInteracted && stateRef.current.startTime) {

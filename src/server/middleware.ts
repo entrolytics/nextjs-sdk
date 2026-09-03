@@ -18,7 +18,7 @@ interface MiddlewareConfig {
 
 type MiddlewareHandler = (
   request: NextRequest,
-  response?: NextResponse,
+  response?: NextResponse | Response,
 ) => Promise<NextResponse | Response | undefined> | NextResponse | Response | undefined;
 
 function routeToRegex(pattern: string): RegExp {
@@ -84,7 +84,7 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
     return trackPatterns.some(pattern => pattern.test(pathname));
   };
 
-  return async (request: NextRequest, response?: NextResponse) => {
+  return async (request: NextRequest, response?: NextResponse | Response) => {
     const { pathname } = request.nextUrl;
 
     if (shouldTrack(pathname)) {
@@ -93,9 +93,9 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
       const hostname = headers.get('host') || 'server';
       const language = headers.get('accept-language')?.split(',')[0] || 'en';
       const userAgent = headers.get('user-agent') || '';
-      const ip = headers.get('x-forwarded-for')?.split(',')[0] || headers.get('x-real-ip') || '';
       const { sessionId, visitorId } = resolveSessionVisitorIds();
       const pageUrl = request.nextUrl.toString();
+      const referrer = headers.get('referer');
 
       const properties: Record<string, string> = {
         method: request.method,
@@ -110,12 +110,14 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
 
       const payload = {
         websiteId,
+        eventId: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
         sessionId,
         visitorId,
         url: pageUrl,
         eventType: 'custom_event',
         eventName: 'middleware-request',
-        ...(headers.get('referer') && { referrer: headers.get('referer') as string }),
+        ...(referrer && { referrer }),
         properties,
       };
 
@@ -126,7 +128,6 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
           ...(userAgent && { 'User-Agent': userAgent }),
-          ...(ip && { 'X-Forwarded-For': ip }),
         },
         body: JSON.stringify(payload),
       }).catch(error => {
@@ -152,13 +153,13 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
  * ```
  */
 export function composeMiddleware(...middlewares: MiddlewareHandler[]): MiddlewareHandler {
-  return async (request: NextRequest, initialResponse?: NextResponse) => {
-    let response = initialResponse;
+  return async (request: NextRequest, initialResponse?: NextResponse | Response) => {
+    let response: NextResponse | Response | undefined = initialResponse;
 
     for (const middleware of middlewares) {
       const result = await middleware(request, response);
       if (result) {
-        response = result as NextResponse;
+        response = result;
       }
     }
 

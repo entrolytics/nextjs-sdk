@@ -169,6 +169,8 @@ export async function trackServerEvent(
 
   const payload = {
     websiteId,
+    eventId: crypto.randomUUID(),
+    timestamp: new Date().toISOString(),
     sessionId,
     visitorId,
     url: eventUrl,

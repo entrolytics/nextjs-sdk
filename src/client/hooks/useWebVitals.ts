@@ -1,9 +1,14 @@
 'use client';
 
-import { API_ROUTES } from '@entrolytics/shared';
+import { API_ROUTES, isNavigationType } from '@entrolytics/shared';
 import type { NavigationType, VitalRating, VitalType } from '@entrolytics/shared';
 import { useCallback, useEffect, useRef } from 'react';
-import { buildCollectionHeaders, getOrCreateSessionId, getOrCreateVisitorId } from '../identity';
+import {
+  buildCollectionHeaders,
+  generateUuid,
+  getOrCreateSessionId,
+  getOrCreateVisitorId,
+} from '../identity';
 import { useEntrolytics } from './useEntrolytics';
 
 export type WebVitalMetric = VitalType;
@@ -53,6 +58,10 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
       const host = config.host || 'https://api.entrolytics.click';
       const payload = {
         websiteId: config.websiteId,
+        clientKey: config.clientKey,
+        eventId: generateUuid(),
+        timestamp: new Date().toISOString(),
+        dnt: navigator.doNotTrack === '1',
         sessionId: getOrCreateSessionId(),
         visitorId: getOrCreateVisitorId(),
         metricName: data.metric,
@@ -69,7 +78,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
       try {
         await fetch(`${host}${API_ROUTES.collectVitals}`, {
           method: 'POST',
-          headers: buildCollectionHeaders(config.apiKey),
+          headers: buildCollectionHeaders(),
           body: JSON.stringify(payload),
           keepalive: true,
         });
@@ -77,7 +86,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
         console.error('[Entrolytics] Failed to track vital:', err);
       }
     },
-    [config.apiKey, config.websiteId, config.host],
+    [config.clientKey, config.websiteId, config.host],
   );
 
   useEffect(() => {
@@ -98,8 +107,8 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
               rating: m.rating,
               delta: m.delta,
               id: m.id,
-              navigationType: m.navigationType as NavigationType,
-              attribution: m.attribution as unknown as Record<string, unknown>,
+              navigationType: isNavigationType(m.navigationType) ? m.navigationType : undefined,
+              attribution: { ...m.attribution },
             }),
           opts,
         );
@@ -112,8 +121,8 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
               rating: m.rating,
               delta: m.delta,
               id: m.id,
-              navigationType: m.navigationType as NavigationType,
-              attribution: m.attribution as unknown as Record<string, unknown>,
+              navigationType: isNavigationType(m.navigationType) ? m.navigationType : undefined,
+              attribution: { ...m.attribution },
             }),
           opts,
         );
@@ -126,8 +135,8 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
               rating: m.rating,
               delta: m.delta,
               id: m.id,
-              navigationType: m.navigationType as NavigationType,
-              attribution: m.attribution as unknown as Record<string, unknown>,
+              navigationType: isNavigationType(m.navigationType) ? m.navigationType : undefined,
+              attribution: { ...m.attribution },
             }),
           opts,
         );
@@ -140,8 +149,8 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
               rating: m.rating,
               delta: m.delta,
               id: m.id,
-              navigationType: m.navigationType as NavigationType,
-              attribution: m.attribution as unknown as Record<string, unknown>,
+              navigationType: isNavigationType(m.navigationType) ? m.navigationType : undefined,
+              attribution: { ...m.attribution },
             }),
           opts,
         );
@@ -154,8 +163,8 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
               rating: m.rating,
               delta: m.delta,
               id: m.id,
-              navigationType: m.navigationType as NavigationType,
-              attribution: m.attribution as unknown as Record<string, unknown>,
+              navigationType: isNavigationType(m.navigationType) ? m.navigationType : undefined,
+              attribution: { ...m.attribution },
             }),
           opts,
         );

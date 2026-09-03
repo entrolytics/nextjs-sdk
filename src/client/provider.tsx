@@ -27,10 +27,14 @@ interface EntrolyticsProviderProps extends EntrolyticsConfig {
   children: ReactNode;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export function EntrolyticsProvider({
   children,
   websiteId,
-  apiKey,
+  clientKey,
   host,
   autoTrack = true,
   tag: initialTag,
@@ -38,6 +42,7 @@ export function EntrolyticsProvider({
   excludeSearch = false,
   excludeHash = false,
   respectDoNotTrack = false,
+  consentGranted = false,
   ignoreLocalhost = false,
   beforeSend,
   trackOutboundLinks = false,
@@ -45,7 +50,6 @@ export function EntrolyticsProvider({
   proxy = false,
   scriptName = 'script.js',
   debug = false,
-  useEdgeRuntime = true,
 }: EntrolyticsProviderProps) {
   const [isReady, setIsReady] = useState(false);
   const [isEnabled, setIsEnabled] = useState(true);
@@ -54,7 +58,7 @@ export function EntrolyticsProvider({
   const cacheRef = useRef<string | undefined>(undefined);
   const currentUrlRef = useRef<string>('');
   const currentRefRef = useRef<string>('');
-  const missingApiKeyWarned = useRef(false);
+  const missingClientKeyWarned = useRef(false);
 
   // Determine endpoint
   const endpoint = useMemo(() => {
@@ -94,10 +98,15 @@ export function EntrolyticsProvider({
 
     // Check Do Not Track
     if (respectDoNotTrack) {
-      const dnt =
-        (navigator as Navigator & { doNotTrack?: string }).doNotTrack ||
-        (navigator as Navigator & { msDoNotTrack?: string }).msDoNotTrack ||
-        (window as Window & { doNotTrack?: string }).doNotTrack;
+      const microsoftDnt =
+        'msDoNotTrack' in navigator && typeof navigator.msDoNotTrack === 'string'
+          ? navigator.msDoNotTrack
+          : undefined;
+      const windowDnt =
+        'doNotTrack' in window && typeof window.doNotTrack === 'string'
+          ? window.doNotTrack
+          : undefined;
+      const dnt = navigator.doNotTrack || microsoftDnt || windowDnt;
       if (dnt === '1' || dnt === 'yes') return true;
     }
 
@@ -172,10 +181,10 @@ export function EntrolyticsProvider({
         return;
       }
 
-      if (!apiKey) {
-        if (!missingApiKeyWarned.current) {
-          log('apiKey is required for collect tracking, skipping until configured');
-          missingApiKeyWarned.current = true;
+      if (!clientKey) {
+        if (!missingClientKeyWarned.current) {
+          log('clientKey is required for collect tracking, skipping until configured');
+          missingClientKeyWarned.current = true;
         }
         return;
       }
@@ -229,6 +238,10 @@ export function EntrolyticsProvider({
 
         const collectPayload = {
           websiteId,
+          clientKey,
+          eventId: generateUuid(),
+          timestamp: new Date().toISOString(),
+          consent: consentGranted,
           sessionId,
           visitorId,
           url,
@@ -260,7 +273,6 @@ export function EntrolyticsProvider({
           body: JSON.stringify(collectPayload),
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': apiKey,
             ...(cacheRef.current && { 'x-entrolytics-cache': cacheRef.current }),
           },
           credentials: 'omit',
@@ -270,9 +282,11 @@ export function EntrolyticsProvider({
         const responseText = await res.text();
         if (responseText) {
           try {
-            const data = JSON.parse(responseText) as { cache?: string; disabled?: boolean };
-            if (data.disabled) setIsEnabled(false);
-            if (data.cache) cacheRef.current = data.cache;
+            const data: unknown = JSON.parse(responseText);
+            if (isRecord(data)) {
+              if (data.disabled === true) setIsEnabled(false);
+              if (typeof data.cache === 'string') cacheRef.current = data.cache;
+            }
           } catch {
             // Non-JSON response is acceptable for fire-and-forget endpoint
           }
@@ -282,10 +296,11 @@ export function EntrolyticsProvider({
       }
     },
     [
-      apiKey,
+      clientKey,
       endpoint,
       checkTrackingDisabled,
       beforeSend,
+      consentGranted,
       log,
       websiteId,
       toAbsoluteUrl,
@@ -319,7 +334,7 @@ export function EntrolyticsProvider({
       return send(basePayload);
     },
     [getPayload, send],
-  ) as EntrolyticsContextValue['track'];
+  );
 
   // Track page view
   const trackView = useCallback(
@@ -398,7 +413,7 @@ export function EntrolyticsProvider({
   // Generate enhanced identity data
   const generateEnhancedIdentity = useCallback(
     (data?: Record<string, string | number | boolean | undefined>): EnhancedIdentityData => {
-      if (typeof window === 'undefined') return { ...data } as EnhancedIdentityData;
+      if (typeof window === 'undefined') return { ...data };
 
       const connection = (navigator as Navigator & { connection?: { effectiveType?: string } })
         .connection;
@@ -444,13 +459,14 @@ export function EntrolyticsProvider({
 
   // Auto-track initial page view
   useEffect(() => {
-    if (!isReady || !autoTrack || checkTrackingDisabled()) return;
+    if (!isReady || !autoTrack || checkTrackingDisabled()) return undefined;
     void track();
+    return undefined;
   }, [isReady, autoTrack, checkTrackingDisabled, track]);
 
   // Handle history changes for SPA navigation
   useEffect(() => {
-    if (typeof window === 'undefined' || !autoTrack) return;
+    if (typeof window === 'undefined' || !autoTrack) return undefined;
 
     const handleNavigation = () => {
       const { location } = window;
@@ -479,16 +495,16 @@ export function EntrolyticsProvider({
     };
 
     // Hook into history API
-    const originalPushState = history.pushState;
-    const originalReplaceState = history.replaceState;
+    const originalPushState = history.pushState.bind(history);
+    const originalReplaceState = history.replaceState.bind(history);
 
     history.pushState = function (...args) {
-      originalPushState.apply(this, args);
+      originalPushState(...args);
       handleNavigation();
     };
 
     history.replaceState = function (...args) {
-      originalReplaceState.apply(this, args);
+      originalReplaceState(...args);
       handleNavigation();
     };
 
@@ -503,10 +519,11 @@ export function EntrolyticsProvider({
 
   // Setup outbound link tracking
   useEffect(() => {
-    if (!trackOutboundLinks || typeof window === 'undefined') return;
+    if (!trackOutboundLinks || typeof window === 'undefined') return undefined;
 
     const handleClick = (e: MouseEvent) => {
-      const target = (e.target as Element)?.closest('a');
+      if (!(e.target instanceof Element)) return;
+      const target = e.target.closest('a');
       if (!target) return;
 
       const href = target.getAttribute('href');
@@ -528,7 +545,7 @@ export function EntrolyticsProvider({
 
   // Expose global entrolytics object
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return undefined;
 
     window.entrolytics = {
       track,
@@ -543,7 +560,7 @@ export function EntrolyticsProvider({
   const config = useMemo(
     () => ({
       websiteId,
-      apiKey,
+      clientKey,
       host,
       autoTrack,
       tag: currentTag,
@@ -558,11 +575,10 @@ export function EntrolyticsProvider({
       proxy,
       scriptName,
       debug,
-      useEdgeRuntime,
     }),
     [
       websiteId,
-      apiKey,
+      clientKey,
       host,
       autoTrack,
       currentTag,
@@ -577,7 +593,6 @@ export function EntrolyticsProvider({
       proxy,
       scriptName,
       debug,
-      useEdgeRuntime,
     ],
   );
 

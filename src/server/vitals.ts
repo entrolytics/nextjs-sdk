@@ -1,4 +1,4 @@
-import { API_ROUTES } from '@entrolytics/shared';
+import { API_ROUTES, isNavigationType, isVitalRating, isVitalType } from '@entrolytics/shared';
 import type { NavigationType, VitalRating, VitalType } from '@entrolytics/shared';
 /**
  * Server-side Web Vitals tracking for Next.js
@@ -219,16 +219,21 @@ export function createWebVitalsReporter(config: TrackVitalsConfig) {
     attribution?: Record<string, unknown>;
   }) => {
     // Only track Core Web Vitals
-    const validMetrics = ['LCP', 'INP', 'CLS', 'TTFB', 'FCP'];
-    if (!validMetrics.includes(metric.name)) return;
+    if (!isVitalType(metric.name)) return;
+
+    const rating = metric.rating && isVitalRating(metric.rating) ? metric.rating : 'good';
+    const navigationType =
+      metric.navigationType && isNavigationType(metric.navigationType)
+        ? metric.navigationType
+        : undefined;
 
     queue.push({
-      metric: metric.name as WebVitalMetric,
+      metric: metric.name,
       value: metric.value,
-      rating: (metric.rating as WebVitalRating) || 'good',
+      rating,
       delta: metric.delta,
       id: metric.id,
-      navigationType: metric.navigationType as NavigationType,
+      navigationType,
       attribution: metric.attribution,
       url: typeof window !== 'undefined' ? window.location.href : undefined,
       path: typeof window !== 'undefined' ? window.location.pathname : undefined,

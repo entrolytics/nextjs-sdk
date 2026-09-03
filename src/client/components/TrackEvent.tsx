@@ -12,6 +12,13 @@ import {
 import type { TrackEventProps } from '../../types';
 import { useEntrolytics } from '../hooks/useEntrolytics';
 
+interface TrackedChildProps {
+  onClick?: (event: React.MouseEvent) => void;
+  onSubmit?: (event: React.FormEvent) => void;
+  ref?: React.Ref<HTMLElement>;
+  className?: string;
+}
+
 /**
  * Declarative component for tracking events.
  *
@@ -44,6 +51,9 @@ export function TrackEvent({
   const { track, isReady } = useEntrolytics();
   const elementRef = useRef<HTMLElement>(null);
   const hasTrackedRef = useRef(false);
+  const setElementRef = useCallback((element: HTMLElement | null) => {
+    elementRef.current = element;
+  }, []);
 
   const handleTrack = useCallback(async () => {
     if (!isReady) return;
@@ -70,10 +80,10 @@ export function TrackEvent({
 
   // Handle visibility trigger with Intersection Observer
   useEffect(() => {
-    if (trigger !== 'visible' || !isReady) return;
+    if (trigger !== 'visible' || !isReady) return undefined;
 
     const element = elementRef.current;
-    if (!element) return;
+    if (!element) return undefined;
 
     const observer = new IntersectionObserver(
       entries => {
@@ -95,16 +105,11 @@ export function TrackEvent({
   }, [trigger, isReady, handleTrack, once]);
 
   // Clone child element and attach handlers
-  if (isValidElement(children)) {
-    const child = children as ReactElement<{
-      onClick?: (e: React.MouseEvent) => void;
-      onSubmit?: (e: React.FormEvent) => void;
-      ref?: React.Ref<HTMLElement>;
-      className?: string;
-    }>;
+  if (isValidElement<TrackedChildProps>(children)) {
+    const child: ReactElement<TrackedChildProps> = children;
 
-    const props: Record<string, unknown> = {
-      ref: elementRef,
+    const props: TrackedChildProps = {
+      ref: setElementRef,
     };
 
     if (className) {
@@ -131,7 +136,7 @@ export function TrackEvent({
   if (trigger === 'click') {
     return (
       <button
-        ref={elementRef as React.RefObject<HTMLButtonElement>}
+        ref={setElementRef}
         type="button"
         className={className}
         onClick={() => {
@@ -145,7 +150,7 @@ export function TrackEvent({
   }
 
   return (
-    <span ref={elementRef as React.RefObject<HTMLSpanElement>} className={className}>
+    <span ref={setElementRef} className={className}>
       {children}
     </span>
   );
