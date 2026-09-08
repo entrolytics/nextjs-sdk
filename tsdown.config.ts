@@ -5,7 +5,7 @@ export default defineConfig([
   {
     entry: ['src/index.ts'],
     format: ['cjs', 'esm'],
-    dts: true,
+    dts: false,
     sourcemap: true,
     clean: true,
     deps: { neverBundle: ['react', 'react-dom', 'next'] },
@@ -17,7 +17,7 @@ export default defineConfig([
   {
     entry: ['src/server/index.ts'],
     format: ['cjs', 'esm'],
-    dts: true,
+    dts: false,
     sourcemap: true,
     outDir: 'dist/server',
     deps: { neverBundle: ['react', 'react-dom', 'next'] },
@@ -26,7 +26,7 @@ export default defineConfig([
   {
     entry: ['src/plugin/index.ts'],
     format: ['cjs', 'esm'],
-    dts: true,
+    dts: false,
     sourcemap: true,
     outDir: 'dist/plugin',
     deps: { neverBundle: ['react', 'react-dom', 'next'] },

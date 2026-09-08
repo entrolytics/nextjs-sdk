@@ -34,35 +34,35 @@
   "sideEffects": false,
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.mts",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.mts",
+        "types": "./dist/index.d.ts",
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./dist/index.d.cts",
+        "types": "./dist/index.d.ts",
         "default": "./dist/index.cjs"
       }
     },
     "./server": {
       "import": {
-        "types": "./dist/server/index.d.mts",
+        "types": "./dist/server/index.d.ts",
         "default": "./dist/server/index.mjs"
       },
       "require": {
-        "types": "./dist/server/index.d.cts",
+        "types": "./dist/server/index.d.ts",
         "default": "./dist/server/index.cjs"
       }
     },
     "./plugin": {
       "import": {
-        "types": "./dist/plugin/index.d.mts",
+        "types": "./dist/plugin/index.d.ts",
         "default": "./dist/plugin/index.mjs"
       },
       "require": {
-        "types": "./dist/plugin/index.d.cts",
+        "types": "./dist/plugin/index.d.ts",
         "default": "./dist/plugin/index.cjs"
       }
     }
@@ -71,7 +71,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown && tsc --emitDeclarationOnly --noEmit false",
     "check": "pnpm lint:check && pnpm typecheck",
     "dev": "tsdown --watch",
     "lint": "oxlint --fix . && oxfmt --write .",
