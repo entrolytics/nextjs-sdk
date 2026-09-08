@@ -1,6 +1,6 @@
 {
   "name": "@entrolytics/nextjs-sdk",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Next.js SDK for Entrolytics - First-party growth analytics for the edge",
   "keywords": [
     "analytics",
@@ -82,8 +82,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@entrolytics/shared": "^3.0.0",
-    "@entrolytics/trpc-client": "^3.0.0",
+    "@entrolytics/shared": "^3.0.1",
+    "@entrolytics/trpc-client": "^3.0.1",
     "@tanstack/react-query": "^5.102.8",
     "@trpc/client": "^11.18.0",
     "@trpc/next": "^11.18.0",
