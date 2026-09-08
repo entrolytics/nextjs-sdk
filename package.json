@@ -1,6 +1,6 @@
 {
   "name": "@entrolytics/nextjs-sdk",
-  "version": "2.2.1",
+  "version": "3.0.0",
   "description": "Next.js SDK for Entrolytics - First-party growth analytics for the edge",
   "keywords": [
     "analytics",
@@ -82,25 +82,25 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@entrolytics/shared": "^2.4.2",
-    "@entrolytics/trpc-client": "^2.3.2",
-    "@tanstack/react-query": "^5.101.4",
+    "@entrolytics/shared": "^3.0.0",
+    "@entrolytics/trpc-client": "^3.0.0",
+    "@tanstack/react-query": "^5.102.8",
     "@trpc/client": "^11.18.0",
     "@trpc/next": "^11.18.0",
     "@trpc/react-query": "^11.18.0"
   },
   "devDependencies": {
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.5.0",
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "next": "^16.3.0",
-    "oxfmt": "^0.63.0",
-    "oxlint": "^1.78.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "tsdown": "^0.22.14",
-    "typescript": "^7.0.2",
-    "vitest": "^4.1.11"
+    "@types/react-dom": "^19.2.7",
+    "next": "^16.3.4",
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0",
+    "react": "canary",
+    "react-dom": "canary",
+    "tsdown": "^0.23.0",
+    "typescript": "next",
+    "vitest": "^5.0.0"
   },
   "peerDependencies": {
     "next": ">=16.0.0",
@@ -113,10 +113,10 @@
     }
   },
   "optionalDependencies": {
-    "web-vitals": "^6.1.0"
+    "web-vitals": "^6.2.1"
   },
   "engines": {
-    "node": ">=24.19.0"
+    "node": ">=24.20.0"
   },
-  "packageManager": "pnpm@11.21.0"
+  "packageManager": "pnpm@11.26.0"
 }
