@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { resolveSessionVisitorIds } from './identity';
+import { requestIp, resolveSessionVisitorIds, visitorHeaders } from './identity';
 
 interface ProxyHandlerConfig {
   /** Entrolytics host URL */
@@ -116,19 +116,20 @@ export function createProxyHandler(config: ProxyHandlerConfig): ProxyHandlers {
         normalizedPayload.visitorId = visitorId;
       }
 
-      const clientIp =
-        request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-        request.headers.get('x-real-ip') ||
-        '';
+      const clientIp = requestIp(request.headers);
+      const origin = request.headers.get('origin');
 
+      // Forwarded as the browser request it is. With its Origin the API identifies the visitor and
+      // applies the site's consent requirement exactly as for direct tracker traffic; without it the
+      // tracker's per-page-load visitorId was stored, counting every page load as a new visitor.
       const response = await fetch(`${baseUrl}/collect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
-          'User-Agent': request.headers.get('user-agent') || '',
-          'X-Forwarded-For': clientIp,
-          'X-Real-IP': clientIp,
+          ...(origin && { Origin: origin }),
+          ...visitorHeaders({ ip: clientIp, userAgent: request.headers.get('user-agent') || '' }),
+          ...(clientIp && { 'X-Real-IP': clientIp }),
         },
         body: JSON.stringify(normalizedPayload),
       });

@@ -1,6 +1,11 @@
 import type { NextRequest } from 'next/server';
 import type { EventData } from '../types';
-import { resolveSessionVisitorIds } from './identity';
+import {
+  requestIp,
+  resolveRequestVisitorId,
+  resolveSessionVisitorIds,
+  visitorHeaders,
+} from './identity';
 
 interface ServerTrackConfig {
   /** Entrolytics host URL */
@@ -57,7 +62,6 @@ function extractRequestMetadata(request?: NextRequest | Request): RequestMetadat
 
   const headers = request.headers;
   const host = headers.get('host') || 'server';
-  const protocol = headers.get('x-forwarded-proto') || 'https';
 
   let requestUrl = '/';
   try {
@@ -69,11 +73,11 @@ function extractRequestMetadata(request?: NextRequest | Request): RequestMetadat
 
   return {
     hostname: host,
-    ip: headers.get('x-forwarded-for')?.split(',')[0]?.trim() || headers.get('x-real-ip') || '',
+    ip: requestIp(headers),
     language: headers.get('accept-language')?.split(',')[0] || 'en',
     referrer: headers.get('referer') || '',
     requestUrl,
-    userAgent: headers.get('user-agent') || `${protocol} server`,
+    userAgent: headers.get('user-agent') || '',
   };
 }
 
@@ -152,7 +156,11 @@ export async function trackServerEvent(
 
   const baseUrl = host.replace(/\/$/, '');
   const metadata = extractRequestMetadata(request);
-  const { sessionId, visitorId } = resolveSessionVisitorIds(config);
+  const { sessionId } = resolveSessionVisitorIds(config);
+  const visitorId = await resolveRequestVisitorId(
+    { apiKey, ip: metadata.ip, userAgent: metadata.userAgent, websiteId },
+    config.visitorId,
+  );
 
   const payloadProperties: EventData = {
     ...data,
@@ -186,8 +194,7 @@ export async function trackServerEvent(
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
-        ...(metadata.userAgent && { 'User-Agent': metadata.userAgent }),
-        ...(metadata.ip && { 'X-Forwarded-For': metadata.ip }),
+        ...visitorHeaders(metadata),
       },
       body: JSON.stringify(payload),
     });

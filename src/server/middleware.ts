@@ -1,5 +1,10 @@
 import type { NextRequest, NextResponse } from 'next/server';
-import { resolveSessionVisitorIds } from './identity';
+import {
+  requestIp,
+  resolveRequestVisitorId,
+  resolveSessionVisitorIds,
+  visitorHeaders,
+} from './identity';
 
 interface MiddlewareConfig {
   /** Entrolytics host URL */
@@ -92,8 +97,13 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
       const headers = request.headers;
       const hostname = headers.get('host') || 'server';
       const language = headers.get('accept-language')?.split(',')[0] || 'en';
-      const userAgent = headers.get('user-agent') || '';
-      const { sessionId, visitorId } = resolveSessionVisitorIds();
+      const visitor = {
+        apiKey,
+        ip: requestIp(headers),
+        userAgent: headers.get('user-agent') || '',
+        websiteId,
+      };
+      const { sessionId } = resolveSessionVisitorIds();
       const pageUrl = request.nextUrl.toString();
       const referrer = headers.get('referer');
 
@@ -113,7 +123,6 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
         eventId: crypto.randomUUID(),
         timestamp: new Date().toISOString(),
         sessionId,
-        visitorId,
         url: pageUrl,
         eventType: 'custom_event',
         eventName: 'middleware-request',
@@ -122,17 +131,21 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
       };
 
       // Fire and forget - don't await
-      fetch(`${baseUrl}/collect`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          ...(userAgent && { 'User-Agent': userAgent }),
-        },
-        body: JSON.stringify(payload),
-      }).catch(error => {
-        console.error('[Entrolytics Middleware] tracking error:', error);
-      });
+      resolveRequestVisitorId(visitor)
+        .then(visitorId =>
+          fetch(`${baseUrl}/collect`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': apiKey,
+              ...visitorHeaders(visitor),
+            },
+            body: JSON.stringify({ ...payload, visitorId }),
+          }),
+        )
+        .catch(error => {
+          console.error('[Entrolytics Middleware] tracking error:', error);
+        });
     }
 
     return response;
