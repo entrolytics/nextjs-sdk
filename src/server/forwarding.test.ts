@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { withEntrolyticsMiddleware } from './middleware';
 import { createProxyHandler } from './proxy';
-import { trackServerEvent } from './track';
+import { identifyServerSession, trackServerEvent } from './track';
 
 const websiteId = '6f1c7c8e-5d3b-4f5a-9d1e-2b6f0c9a7e41';
 const browser = 'Mozilla/5.0 (Macintosh) Safari/605.1.15';
@@ -46,6 +46,24 @@ describe('server-side collection', () => {
     expect(first?.headers['X-Forwarded-User-Agent']).toBe(browser);
     expect(first?.headers['X-Forwarded-For']).toBe('203.0.113.7');
     expect(first?.headers['User-Agent']).toBeUndefined();
+  });
+
+  it('tells the API how long each server-side visitor id lasts', async () => {
+    const calls = recordFetch();
+    const config = { apiKey: 'ent_test', host: 'https://api.example.test', websiteId };
+
+    await trackServerEvent(config, { request: visitorRequest('203.0.113.7') });
+    await identifyServerSession(config, { id: 'user-1', request: visitorRequest('203.0.113.7') });
+    await trackServerEvent({ ...config, visitorId: 'customer-42' }, { event: 'signup' });
+    await trackServerEvent(config, { event: 'signup' });
+
+    expect(calls.map(call => call.body.visitorIdScope)).toEqual([
+      'daily',
+      'daily',
+      'persistent',
+      undefined,
+    ]);
+    expect(calls[2]?.body.visitorId).toBe('customer-42');
   });
 
   it('forwards proxied tracker events as the browser requests they are', async () => {
@@ -107,6 +125,7 @@ describe('server-side collection', () => {
     await vi.waitFor(() => expect(calls).toHaveLength(1));
 
     expect(calls[0]?.body.sessionId).toBe('6e75928f-813d-49ee-a4dc-5d2e299d7eb2');
+    expect(calls[0]?.body.visitorIdScope).toBe('daily');
   });
 
   it("keeps the tracker's session id and derives one only for payloads without it", async () => {

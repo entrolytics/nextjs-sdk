@@ -134,7 +134,7 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
         resolveRequestSessionId(visitor, undefined, now),
         resolveRequestVisitorId(visitor),
       ])
-        .then(([sessionId, visitorId]) =>
+        .then(([sessionId, requestVisitor]) =>
           fetch(`${baseUrl}/collect`, {
             method: 'POST',
             headers: {
@@ -142,7 +142,7 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
               'x-api-key': apiKey,
               ...visitorHeaders(visitor),
             },
-            body: JSON.stringify({ ...payload, sessionId, visitorId }),
+            body: JSON.stringify({ ...payload, sessionId, ...requestVisitor }),
           }),
         )
         .catch(error => {

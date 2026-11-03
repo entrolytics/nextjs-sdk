@@ -95,17 +95,27 @@ export async function deriveSessionId(visitor: VisitorRequest, now = new Date())
   );
 }
 
+export interface RequestVisitor {
+  visitorId: string;
+  /**
+   * How long `visitorId` identifies the visitor, sent as the /collect `visitorIdScope`. The API's
+   * retention report counts only persistent ids; omitted when the lifetime is unknown.
+   */
+  visitorIdScope?: 'daily' | 'persistent';
+}
+
 /**
- * The visitor id for an event made on a visitor's behalf: the caller's, else one derived from the
- * visitor's request, else a new one when nothing about the visitor is known.
+ * The visitor id for an event made on a visitor's behalf: the caller's (persistent), else one
+ * derived from the visitor's request (daily), else a new one with no scope when nothing about the
+ * visitor is known.
  */
 export async function resolveRequestVisitorId(
   visitor: VisitorRequest,
   explicit?: string,
-): Promise<string> {
-  if (explicit) return explicit;
-  if (!visitor.ip && !visitor.userAgent) return generateUuid();
-  return deriveVisitorId(visitor);
+): Promise<RequestVisitor> {
+  if (explicit) return { visitorId: explicit, visitorIdScope: 'persistent' };
+  if (!visitor.ip && !visitor.userAgent) return { visitorId: generateUuid() };
+  return { visitorId: await deriveVisitorId(visitor), visitorIdScope: 'daily' };
 }
 
 /**

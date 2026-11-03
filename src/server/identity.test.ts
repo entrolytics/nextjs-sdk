@@ -44,9 +44,21 @@ describe('server identity', () => {
   });
 
   it('prefers an explicit visitor and falls back to a new id without request context', async () => {
-    expect(await resolveRequestVisitorId(visitor, 'explicit')).toBe('explicit');
+    expect(await resolveRequestVisitorId(visitor, 'explicit')).toEqual({
+      visitorId: 'explicit',
+      visitorIdScope: 'persistent',
+    });
+    expect(await resolveRequestVisitorId(visitor, undefined)).toEqual({
+      visitorId: await deriveVisitorId(visitor),
+      visitorIdScope: 'daily',
+    });
     const unknown = { ...visitor, ip: '', userAgent: '' };
-    expect(await resolveRequestVisitorId(unknown)).not.toBe(await resolveRequestVisitorId(unknown));
+    const [first, second] = [
+      await resolveRequestVisitorId(unknown),
+      await resolveRequestVisitorId(unknown),
+    ];
+    expect(first.visitorId).not.toBe(second.visitorId);
+    expect(first).not.toHaveProperty('visitorIdScope');
   });
 
   it('derives the visitor and session ids every Entrolytics SDK derives', async () => {

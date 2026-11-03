@@ -158,7 +158,7 @@ export async function trackServerEvent(
   const metadata = extractRequestMetadata(request);
   const now = new Date();
   const visitor = { apiKey, ip: metadata.ip, userAgent: metadata.userAgent, websiteId };
-  const [sessionId, visitorId] = await Promise.all([
+  const [sessionId, requestVisitor] = await Promise.all([
     resolveRequestSessionId(visitor, config.sessionId, now),
     resolveRequestVisitorId(visitor, config.visitorId),
   ]);
@@ -181,7 +181,7 @@ export async function trackServerEvent(
     eventId: crypto.randomUUID(),
     timestamp: now.toISOString(),
     sessionId,
-    visitorId,
+    ...requestVisitor,
     url: eventUrl,
     eventType: event ? 'custom_event' : 'pageview',
     ...(event && { eventName: event }),
