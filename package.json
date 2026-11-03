@@ -14,12 +14,12 @@
     "web-analytics",
     "web-vitals"
   ],
-  "homepage": "https://entrolytics.click",
+  "homepage": "https://entrolytics.dev",
   "bugs": {
     "url": "https://github.com/entrolytics/nextjs-sdk/issues"
   },
   "license": "MIT",
-  "author": "Entrolytics <hey@entrolytics.click>",
+  "author": "Entrolytics <hey@entrolytics.dev>",
   "repository": {
     "type": "git",
     "url": "https://github.com/entrolytics/nextjs-sdk.git",
@@ -82,25 +82,25 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@entrolytics/shared": "^3.0.1",
+    "@entrolytics/shared": "^3.1.0",
     "@entrolytics/trpc-client": "^3.0.1",
-    "@tanstack/react-query": "^5.102.8",
-    "@trpc/client": "^11.18.0",
-    "@trpc/next": "^11.18.0",
-    "@trpc/react-query": "^11.18.0"
+    "@tanstack/react-query": "^5.105.3",
+    "@trpc/client": "^11.23.0",
+    "@trpc/next": "^11.24.0",
+    "@trpc/react-query": "^11.24.0"
   },
   "devDependencies": {
-    "@types/node": "^26.5.0",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.7",
-    "next": "^16.3.4",
-    "oxfmt": "^0.67.0",
-    "oxlint": "^1.82.0",
-    "react": "canary",
-    "react-dom": "canary",
-    "tsdown": "^0.23.0",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "next": "^16.4.5",
+    "oxfmt": "^0.76.0",
+    "oxlint": "^1.91.0",
+    "react": "latest",
+    "react-dom": "latest",
+    "tsdown": "^0.23.5",
     "typescript": "next",
-    "vitest": "^5.0.0"
+    "vitest": "^5.1.0"
   },
   "peerDependencies": {
     "next": ">=16.0.0",
@@ -113,10 +113,10 @@
     }
   },
   "optionalDependencies": {
-    "web-vitals": "^6.2.1"
+    "web-vitals": "^6.2.3"
   },
   "engines": {
-    "node": ">=24.20.0"
+    "node": ">=24.22.2"
   },
-  "packageManager": "pnpm@11.26.0"
+  "packageManager": "pnpm@12.17.0"
 }

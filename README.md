@@ -101,7 +101,7 @@ That's it! The `<Analytics />` component automatically reads from your `.env.loc
 
 ```bash
 NEXT_PUBLIC_ENTROLYTICS_WEBSITE_ID=your-website-id
-NEXT_PUBLIC_ENTROLYTICS_HOST=https://entrolytics.click
+NEXT_PUBLIC_ENTROLYTICS_HOST=https://entrolytics.dev
 ```
 
 ### 2. Track Events
@@ -313,4 +313,4 @@ export default withEntrolytics({
 
 ## License
 
-MIT © [Entrolytics](https://entrolytics.click)
+MIT © [Entrolytics](https://entrolytics.dev)

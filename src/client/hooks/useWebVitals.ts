@@ -55,7 +55,7 @@ export function useWebVitals(options: UseWebVitalsOptions = {}) {
     async (data: WebVitalData) => {
       if (typeof window === 'undefined') return;
 
-      const host = config.host || 'https://api.entrolytics.click';
+      const host = config.host || 'https://api.entrolytics.dev';
       const payload = {
         websiteId: config.websiteId,
         clientKey: config.clientKey,

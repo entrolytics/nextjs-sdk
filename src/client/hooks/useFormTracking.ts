@@ -116,7 +116,7 @@ export function useFormTracking(options: UseFormTrackingOptions) {
     ) => {
       if (typeof window === 'undefined') return;
 
-      const host = config.host || 'https://api.entrolytics.click';
+      const host = config.host || 'https://api.entrolytics.dev';
       const payload: FormEventData = {
         formId: data.formId || formId,
         formName: data.formName || formName,
