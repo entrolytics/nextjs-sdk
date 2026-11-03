@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  deriveSessionId,
   deriveVisitorId,
   generateUuid,
+  resolveRequestSessionId,
   resolveRequestVisitorId,
   resolveSessionVisitorIds,
 } from './identity';
@@ -45,5 +47,25 @@ describe('server identity', () => {
     expect(await resolveRequestVisitorId(visitor, 'explicit')).toBe('explicit');
     const unknown = { ...visitor, ip: '', userAgent: '' };
     expect(await resolveRequestVisitorId(unknown)).not.toBe(await resolveRequestVisitorId(unknown));
+  });
+
+  it('derives the visitor and session ids every Entrolytics SDK derives', async () => {
+    expect(await deriveVisitorId(visitor, new Date('2026-09-24T14:30:00Z'))).toBe(
+      'cb36ddfc-3c30-41b4-8d6a-f3928d890509',
+    );
+    for (const time of ['2026-09-24T14:30:00Z', '2026-09-24T14:47:00Z', '2026-09-24T14:59:59Z']) {
+      expect(await deriveSessionId(visitor, new Date(time))).toBe(
+        '6e75928f-813d-49ee-a4dc-5d2e299d7eb2',
+      );
+    }
+    expect(await deriveSessionId(visitor, new Date('2026-09-24T15:00:00Z'))).toBe(
+      'f656564a-ee6c-4cc1-8309-0b69c73bfd3d',
+    );
+  });
+
+  it('prefers an explicit session and falls back to a new id without request context', async () => {
+    expect(await resolveRequestSessionId(visitor, 'explicit')).toBe('explicit');
+    const unknown = { ...visitor, ip: '', userAgent: '' };
+    expect(await resolveRequestSessionId(unknown)).not.toBe(await resolveRequestSessionId(unknown));
   });
 });

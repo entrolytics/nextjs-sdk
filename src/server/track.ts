@@ -2,8 +2,8 @@ import type { NextRequest } from 'next/server';
 import type { EventData } from '../types';
 import {
   requestIp,
+  resolveRequestSessionId,
   resolveRequestVisitorId,
-  resolveSessionVisitorIds,
   visitorHeaders,
 } from './identity';
 
@@ -156,11 +156,12 @@ export async function trackServerEvent(
 
   const baseUrl = host.replace(/\/$/, '');
   const metadata = extractRequestMetadata(request);
-  const { sessionId } = resolveSessionVisitorIds(config);
-  const visitorId = await resolveRequestVisitorId(
-    { apiKey, ip: metadata.ip, userAgent: metadata.userAgent, websiteId },
-    config.visitorId,
-  );
+  const now = new Date();
+  const visitor = { apiKey, ip: metadata.ip, userAgent: metadata.userAgent, websiteId };
+  const [sessionId, visitorId] = await Promise.all([
+    resolveRequestSessionId(visitor, config.sessionId, now),
+    resolveRequestVisitorId(visitor, config.visitorId),
+  ]);
 
   const payloadProperties: EventData = {
     ...data,
@@ -178,7 +179,7 @@ export async function trackServerEvent(
   const payload = {
     websiteId,
     eventId: crypto.randomUUID(),
-    timestamp: new Date().toISOString(),
+    timestamp: now.toISOString(),
     sessionId,
     visitorId,
     url: eventUrl,

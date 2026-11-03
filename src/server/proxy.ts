@@ -1,5 +1,10 @@
 import type { NextRequest } from 'next/server';
-import { requestIp, resolveSessionVisitorIds, visitorHeaders } from './identity';
+import {
+  requestIp,
+  resolveRequestSessionId,
+  resolveSessionVisitorIds,
+  visitorHeaders,
+} from './identity';
 
 interface ProxyHandlerConfig {
   /** Entrolytics host URL */
@@ -101,22 +106,24 @@ export function createProxyHandler(config: ProxyHandlerConfig): ProxyHandlers {
         return Response.json({ error: 'websiteId is required' }, { status: 400 });
       }
 
+      const clientIp = requestIp(request.headers);
+      const userAgent = request.headers.get('user-agent') || '';
+
       if (!normalizedPayload.sessionId || !normalizedPayload.visitorId) {
-        const { sessionId, visitorId } = resolveSessionVisitorIds({
-          sessionId:
-            typeof normalizedPayload.sessionId === 'string'
-              ? normalizedPayload.sessionId
-              : undefined,
+        // The tracker's own session id is kept; only a payload without one gets the derived id.
+        const { visitorId } = resolveSessionVisitorIds({
           visitorId:
             typeof normalizedPayload.visitorId === 'string'
               ? normalizedPayload.visitorId
               : undefined,
         });
-        normalizedPayload.sessionId = sessionId;
+        normalizedPayload.sessionId = await resolveRequestSessionId(
+          { apiKey, ip: clientIp, userAgent, websiteId: normalizedPayload.websiteId },
+          typeof normalizedPayload.sessionId === 'string' ? normalizedPayload.sessionId : undefined,
+        );
         normalizedPayload.visitorId = visitorId;
       }
 
-      const clientIp = requestIp(request.headers);
       const origin = request.headers.get('origin');
 
       // Forwarded as the browser request it is. With its Origin the API identifies the visitor and
@@ -128,7 +135,7 @@ export function createProxyHandler(config: ProxyHandlerConfig): ProxyHandlers {
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
           ...(origin && { Origin: origin }),
-          ...visitorHeaders({ ip: clientIp, userAgent: request.headers.get('user-agent') || '' }),
+          ...visitorHeaders({ ip: clientIp, userAgent }),
           ...(clientIp && { 'X-Real-IP': clientIp }),
         },
         body: JSON.stringify(normalizedPayload),

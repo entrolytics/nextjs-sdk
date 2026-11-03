@@ -46,6 +46,19 @@ function toUuidV4(bytes: Uint8Array): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
 }
 
+async function hmacUuid(apiKey: string, message: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(apiKey),
+    { hash: 'SHA-256', name: 'HMAC' },
+    false,
+    ['sign'],
+  );
+  const digest = await crypto.subtle.sign('HMAC', key, encoder.encode(message));
+  return toUuidV4(new Uint8Array(digest).slice(0, 16));
+}
+
 /**
  * A site-scoped visitor id that rotates at midnight UTC, derived from the visitor's IP address and
  * user agent.
@@ -56,18 +69,30 @@ function toUuidV4(bytes: Uint8Array): string {
  * cannot be recomputed from an IP address and user agent alone.
  */
 export async function deriveVisitorId(visitor: VisitorRequest, now = new Date()): Promise<string> {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(visitor.apiKey),
-    { hash: 'SHA-256', name: 'HMAC' },
-    false,
-    ['sign'],
-  );
   const day = now.toISOString().slice(0, 10);
-  const message = `${visitor.websiteId}\u0000${day}\u0000${visitor.ip}\u0000${visitor.userAgent}`;
-  const digest = await crypto.subtle.sign('HMAC', key, encoder.encode(message));
-  return toUuidV4(new Uint8Array(digest).slice(0, 16));
+  return hmacUuid(
+    visitor.apiKey,
+    `${visitor.websiteId}\u0000${day}\u0000${visitor.ip}\u0000${visitor.userAgent}`,
+  );
+}
+
+const SESSION_WINDOW_MS = 30 * 60 * 1000;
+
+/**
+ * A session id for the visitor's 30-minute UTC window (starting on the hour and the half hour),
+ * derived like the visitor id: a keyed hash of the IP address and user agent, with no cookie.
+ *
+ * A new id per call counted every server-side event as a new visit. A visit that crosses a window
+ * boundary counts as two sessions.
+ */
+export async function deriveSessionId(visitor: VisitorRequest, now = new Date()): Promise<string> {
+  const slot = new Date(Math.floor(now.getTime() / SESSION_WINDOW_MS) * SESSION_WINDOW_MS)
+    .toISOString()
+    .slice(0, 16);
+  return hmacUuid(
+    visitor.apiKey,
+    `${visitor.websiteId}\u0000session\u0000${slot}\u0000${visitor.ip}\u0000${visitor.userAgent}`,
+  );
 }
 
 /**
@@ -81,6 +106,20 @@ export async function resolveRequestVisitorId(
   if (explicit) return explicit;
   if (!visitor.ip && !visitor.userAgent) return generateUuid();
   return deriveVisitorId(visitor);
+}
+
+/**
+ * The session id for an event made on a visitor's behalf at `now`: the caller's, else one derived
+ * from the visitor's request, else a new one when nothing about the visitor is known.
+ */
+export async function resolveRequestSessionId(
+  visitor: VisitorRequest,
+  explicit?: string,
+  now = new Date(),
+): Promise<string> {
+  if (explicit) return explicit;
+  if (!visitor.ip && !visitor.userAgent) return generateUuid();
+  return deriveSessionId(visitor, now);
 }
 
 /**

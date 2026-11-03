@@ -1,8 +1,8 @@
 import type { NextRequest, NextResponse } from 'next/server';
 import {
   requestIp,
+  resolveRequestSessionId,
   resolveRequestVisitorId,
-  resolveSessionVisitorIds,
   visitorHeaders,
 } from './identity';
 
@@ -103,7 +103,7 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
         userAgent: headers.get('user-agent') || '',
         websiteId,
       };
-      const { sessionId } = resolveSessionVisitorIds();
+      const now = new Date();
       const pageUrl = request.nextUrl.toString();
       const referrer = headers.get('referer');
 
@@ -121,8 +121,7 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
       const payload = {
         websiteId,
         eventId: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-        sessionId,
+        timestamp: now.toISOString(),
         url: pageUrl,
         eventType: 'custom_event',
         eventName: 'middleware-request',
@@ -131,8 +130,11 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
       };
 
       // Fire and forget - don't await
-      resolveRequestVisitorId(visitor)
-        .then(visitorId =>
+      Promise.all([
+        resolveRequestSessionId(visitor, undefined, now),
+        resolveRequestVisitorId(visitor),
+      ])
+        .then(([sessionId, visitorId]) =>
           fetch(`${baseUrl}/collect`, {
             method: 'POST',
             headers: {
@@ -140,7 +142,7 @@ export function withEntrolyticsMiddleware(config: MiddlewareConfig): MiddlewareH
               'x-api-key': apiKey,
               ...visitorHeaders(visitor),
             },
-            body: JSON.stringify({ ...payload, visitorId }),
+            body: JSON.stringify({ ...payload, sessionId, visitorId }),
           }),
         )
         .catch(error => {
