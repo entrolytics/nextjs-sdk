@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
+
+## [3.0.2] - 2026-11-26
 
 ### Fixed
 
@@ -17,3 +19,6 @@
   server-side traffic. They now send `visitorIdScope`: `persistent` for a configured `visitorId`,
   `daily` for the id derived from the request's IP address and user agent; it is left out for a
   random id. Tracker payloads forwarded by `createProxyHandler` are unchanged.
+
+[Unreleased]: https://github.com/entrolytics/nextjs-sdk/compare/v3.0.2...HEAD
+[3.0.2]: https://github.com/entrolytics/nextjs-sdk/releases/tag/v3.0.2
