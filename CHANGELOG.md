@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.0.3] - 2026-11-26
+
 ### Changed
 
 - Depends on tRPC 11.31.4.
@@ -25,5 +27,6 @@
   `daily` for the id derived from the request's IP address and user agent; it is left out for a
   random id. Tracker payloads forwarded by `createProxyHandler` are unchanged.
 
-[Unreleased]: https://github.com/entrolytics/nextjs-sdk/compare/v3.0.2...HEAD
+[Unreleased]: https://github.com/entrolytics/nextjs-sdk/compare/v3.0.3...HEAD
+[3.0.3]: https://github.com/entrolytics/nextjs-sdk/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/entrolytics/nextjs-sdk/releases/tag/v3.0.2
