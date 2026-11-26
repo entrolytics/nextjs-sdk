@@ -167,11 +167,11 @@ importers:
   .:
     dependencies:
       '@entrolytics/shared':
-        specifier: ^3.2.0
-        version: 3.2.0
+        specifier: ^3.2.1
+        version: 3.2.1
       '@entrolytics/trpc-client':
-        specifier: ^3.1.0
-        version: 3.1.0(fastify@6.0.0-alpha.6)(next@16.4.6(@types/node@26.6.11)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@7.1.0-dev.20261126.1)
+        specifier: ^3.1.1
+        version: 3.1.1(fastify@6.0.0-alpha.6)(next@16.4.6(@types/node@26.6.11)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@7.1.0-dev.20261126.1)
       '@tanstack/react-query':
         specifier: ^5.108.4
         version: 5.108.4(@types/react@19.3.3)(react@19.3.1)
@@ -237,20 +237,20 @@ packages:
   '@emnapi/wasi-threads@2.2.0':
     resolution: {integrity: sha512-JP7OYH38Q7+pyTAe14raZHLQIK7BDKbdwji+Xi3pcd/6QkJYQH3SX4wu6EplGrGJWRepoNzedfm0G3B9Z4e9Rw==}
 
-  '@entrolytics/api-types@6.0.1':
-    resolution: {integrity: sha512-7gwRhUZWcEKUbTCQeAlMFv5pJ6rozGhk9Qla20uyrjGk/WBHvvFlu5SRCPZhQlmxJIM4zakoTD0wWTB8JvwRPQ==}
+  '@entrolytics/api-types@6.0.3':
+    resolution: {integrity: sha512-6JyWveT4s+2eqBGwIeBCubT3c7AQU9ct63iqlWk06fRbiqloqV9+YbbrscdwkPPbrOGbBYIK8YzWiYzkBXGrLA==}
 
-  '@entrolytics/config@4.0.0':
-    resolution: {integrity: sha512-Lu4th6vTPmPw5+/bWB10UWf1Yp0scDCTY+uaEl7pp4AUfpGTfokb8JWAwP/tTZvQsoaUCr37t+ujJ0mNrlrszA==}
+  '@entrolytics/config@4.1.0':
+    resolution: {integrity: sha512-Qtvjbt4wHpAS0Z9SvP4nBXQNcxKe8V3TkiMLbE67Ia2Sj22uhIu09RmUSLQwfKS89K3rDsjrf4dNbizqg/2i0w==}
 
-  '@entrolytics/protocol@4.0.0':
-    resolution: {integrity: sha512-FwYbeao2LVpVazPqTW+4Q/H6Q9+qxeVI6Z6jgMvEFHIWz8Be+eokTx5dfS7DbkyN2IAq4gllmAJcxAvQrjNe/w==}
+  '@entrolytics/protocol@4.1.0':
+    resolution: {integrity: sha512-qTaqvI7cqiXl7ts+q/6Q7wJ3RqLThYYEjLEi3YgXmmWA/YSAe8+U0DYtrBI8MQd/93YS+dDW8oFqx0TRyrGzMA==}
 
-  '@entrolytics/shared@3.2.0':
-    resolution: {integrity: sha512-sQCZy19WxbokpT0+5JL9ZoJ5Ghy4OkVahsmfcdLSobOX2vN0bPpPP0z03qfVsGBxY71NT0jU4f4Ns3QAPyD6fg==}
+  '@entrolytics/shared@3.2.1':
+    resolution: {integrity: sha512-mtwCWv+emC30XOFOCbrxKhaOxhCWCWCV6GBVxWIEoqQLa0qhhx+F/WMAGwZF1j8uNQ2rMkflp+7ld2T/pkRllQ==}
 
-  '@entrolytics/trpc-client@3.1.0':
-    resolution: {integrity: sha512-WOiO9x4bTdzAGFZDJ6H3UnXx40gjQJxigCBmEJ3SDiG4f7FpEtpP2UWRAIA4E3QQlKMVeVeUUlIwH3L5KtOAaA==}
+  '@entrolytics/trpc-client@3.1.1':
+    resolution: {integrity: sha512-T/kIrQSVuee4at4QAsEmt5swE4IKyvXKyzCXsfHWpNP7qOMpwANIx6WI/BK+A4/AS2A2dEfRpHnxFSEUNYRWKA==}
 
   '@fastify/ajv-compiler@4.0.8':
     resolution: {integrity: sha512-xYcAFYoyP/NELMgj6I7LmMAmiqeXMal0wsM2SgueN9OyMr6bVKHomO9OxuStC7bIAEl4Z3JXBbDPwpXRp59NPQ==}
@@ -1702,10 +1702,10 @@ snapshots:
       tslib: 2.9.1
     optional: true
 
-  '@entrolytics/api-types@6.0.1(next@16.4.6(@types/node@26.6.11)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@7.1.0-dev.20261126.1)':
+  '@entrolytics/api-types@6.0.3(next@16.4.6(@types/node@26.6.11)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@7.1.0-dev.20261126.1)':
     dependencies:
-      '@entrolytics/config': 4.0.0
-      '@entrolytics/protocol': 4.0.0
+      '@entrolytics/config': 4.1.0
+      '@entrolytics/protocol': 4.1.0
       '@trpc/server': 11.31.3(fastify@6.0.0-alpha.6)(next@16.4.6(@types/node@26.6.11)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@7.1.0-dev.20261126.1)
       fastify: 6.0.0-alpha.6
       zod: 4.6.7
@@ -1716,20 +1716,20 @@ snapshots:
       - next
       - typescript
 
-  '@entrolytics/config@4.0.0':
+  '@entrolytics/config@4.1.0':
     dependencies:
       zod: 4.6.7
 
-  '@entrolytics/protocol@4.0.0':
+  '@entrolytics/protocol@4.1.0':
     dependencies:
       zod: 4.6.7
 
-  '@entrolytics/shared@3.2.0': {}
+  '@entrolytics/shared@3.2.1': {}
 
-  '@entrolytics/trpc-client@3.1.0(fastify@6.0.0-alpha.6)(next@16.4.6(@types/node@26.6.11)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@7.1.0-dev.20261126.1)':
+  '@entrolytics/trpc-client@3.1.1(fastify@6.0.0-alpha.6)(next@16.4.6(@types/node@26.6.11)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@7.1.0-dev.20261126.1)':
     dependencies:
-      '@entrolytics/api-types': 6.0.1(next@16.4.6(@types/node@26.6.11)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@7.1.0-dev.20261126.1)
-      '@entrolytics/shared': 3.2.0
+      '@entrolytics/api-types': 6.0.3(next@16.4.6(@types/node@26.6.11)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@7.1.0-dev.20261126.1)
+      '@entrolytics/shared': 3.2.1
       '@trpc/client': 11.31.3(@trpc/server@11.31.3(fastify@6.0.0-alpha.6)(next@16.4.6(@types/node@26.6.11)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@7.1.0-dev.20261126.1))(typescript@7.1.0-dev.20261126.1)
       '@trpc/server': 11.31.3(fastify@6.0.0-alpha.6)(next@16.4.6(@types/node@26.6.11)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@7.1.0-dev.20261126.1)
       superjson: 2.2.7
