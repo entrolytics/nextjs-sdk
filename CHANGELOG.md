@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Depends on tRPC 11.31.4.
+- Built and released with pnpm 12.24.0.
+
 ## [3.0.2] - 2026-11-26
 
 ### Fixed
