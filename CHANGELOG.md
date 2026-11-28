@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Depends on `@entrolytics/trpc-client` 4.0.0, whose router types describe the API after sign-in
+  moved from Clerk to the dashboard itself. Nothing changes at run time.
+
 ## [3.0.3] - 2026-11-26
 
 ### Changed
