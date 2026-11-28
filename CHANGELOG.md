@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.0.4] - 2026-11-28
+
 ### Changed
 
 - Depends on `@entrolytics/trpc-client` 4.0.0, whose router types describe the API after sign-in
@@ -32,6 +34,7 @@
   `daily` for the id derived from the request's IP address and user agent; it is left out for a
   random id. Tracker payloads forwarded by `createProxyHandler` are unchanged.
 
-[Unreleased]: https://github.com/entrolytics/nextjs-sdk/compare/v3.0.3...HEAD
+[Unreleased]: https://github.com/entrolytics/nextjs-sdk/compare/v3.0.4...HEAD
+[3.0.4]: https://github.com/entrolytics/nextjs-sdk/compare/v3.0.3...v3.0.4
 [3.0.3]: https://github.com/entrolytics/nextjs-sdk/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/entrolytics/nextjs-sdk/releases/tag/v3.0.2
